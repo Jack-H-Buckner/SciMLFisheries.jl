@@ -195,7 +195,7 @@ function DelayEmbeddingDropOut(; lags = 5, hidden = 10, drop_prob = 0.1, seed = 
     NN = Lux.Chain( Lux.Dense(dims_in,hidden,tanh), Lux.Dropout(drop_prob), Lux.Dense(hidden,1))
     Random.seed!(round(Int,seed)) ;rng = Random.default_rng() 
     NN_parameters, NN_states = Lux.setup(rng,NN) 
-    parameters = (NN = NN_parameters, aux0 = zeros(2*lags))
+    parameters = (NN = NN_parameters, aux0 = zeros(round(Int,2*lags)))
         
     function predict(u, dt,parameters) 
         r = NN(vcat(u[1:1],parameters.aux0),parameters.NN,NN_states)[1][1]
