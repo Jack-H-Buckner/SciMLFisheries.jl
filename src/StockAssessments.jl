@@ -62,6 +62,30 @@ mutable struct SurplusProduction
     constructor
 end
 
+"""
+    SurplusProduction(data;kwargs ...)
+
+Initailizes a surplus production model to fit to the data set.
+
+...
+# Arguments
+ - data, a DataFrames.jl data frame with columns for time `t`, harvest `H`, and a relative abundance index `y`.
+
+# Key words
+- production_model, a string specifying the produciton model. Default = "DelayEmbedding", options = ["DelayEmbedding","FeedForward","LSTM","DelayEmbeddingARD","DelayEmbeddingDropOut","LSTMDropOut]
+- harvest_model, a string specifying the harvest model. Default = "DiscreteAprox", options = ["DiscreteAprox", "LinearAprox"]
+- index_model="Linear", 
+- regularizaiton_type = "L1",
+- regularizaiton_weight = 10.0^-4,
+- loss="MSE",
+- process_weights = [2.0,0.1],
+- observaiton_weights = [0.5,0.5],
+- produciton_hyper_parameters = NamedTuple(),
+- prior_q = 0.0,
+- prior_b = 1.0,
+- prior_weight = 0.0
+...
+"""
 function SurplusProduction(data;
         production_model = "DelayEmbedding",
         harvest_model = "DiscreteAprox",
