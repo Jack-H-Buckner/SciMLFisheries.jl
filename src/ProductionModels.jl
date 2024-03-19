@@ -190,7 +190,9 @@ end
 function DelayEmbeddingDropOut(; lags = 5, hidden = 10, drop_prob = 0.1, seed = 1, extrap_value=0.01, extrap_length = 0.25)
     
     # initial neurla Network
-    NN = Lux.Chain( Lux.Dense(1+2*lags,hidden,tanh), Lux.Dropout(drop_prob), Lux.Dense(hidden,1))
+    dims_in = round(Int,1+2*lags)
+    hidden = round(Int,hidden)
+    NN = Lux.Chain( Lux.Dense(dims_in,hidden,tanh), Lux.Dropout(drop_prob), Lux.Dense(hidden,1))
     Random.seed!(round(Int,seed)) ;rng = Random.default_rng() 
     NN_parameters, NN_states = Lux.setup(rng,NN) 
     parameters = (NN = NN_parameters, aux0 = zeros(2*lags))
