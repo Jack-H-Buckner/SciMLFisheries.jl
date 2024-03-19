@@ -268,7 +268,8 @@ function LogisticPeriodic(;plot = true, datasize = 100,T = 30.0,p = (r=0.3,K = 1
     
     # testing data
     testing_tspan, testing_tsteps, Hvals, dt = test_data_times(Tforecast,tsteps,tspan,Hvals)
-    test_sets, test_X = simulate_test_data(derivs_H,noise,uT,p,testing_tspan,testing_tsteps,Hvals,sigma_x)
+    simulate_test_data(derivs,noise,u0,p,testing_tspan,testing_tsteps,Hvals,sigma_x,B0)
+    test_sets, test_X = simulate_test_data(derivs_H,noise,uT,p,testing_tspan,testing_tsteps,Hvals,sigma_x,0)
     
     return training_data, training_X, test_sets, test_X, training_plt
     
@@ -316,7 +317,7 @@ function LogisticRedNoise(;plot = true, datasize = 100,T = 30.0,p = (r=0.3,K = 1
     end
 
     # generate time series with DifferentialEquations.jl
-    training_data, training_X, ode_data = simulation(derivs,noise,tspan,u0,tsteps,p,sigma_x,sigma_H)
+    training_data, training_X, ode_data, B0 = simulation(derivs,noise,tspan,u0,tsteps,p,sigma_x,sigma_H)
     uT = ode_data[:,end-1]
     
     # training data
@@ -328,7 +329,7 @@ function LogisticRedNoise(;plot = true, datasize = 100,T = 30.0,p = (r=0.3,K = 1
     
     # testing data
     testing_tspan, testing_tsteps, Hvals, dt = test_data_times(Tforecast,tsteps,tspan,Hvals)
-    test_sets, test_X, B0 = simulate_test_data(derivs_H,noise_H,uT,p,testing_tspan,testing_tsteps,Hvals,sigma_x)
+    test_sets, test_X, B0 = simulate_test_data(derivs_H,noise_H,uT,p,testing_tspan,testing_tsteps,Hvals,sigma_x, B0)
     
     return training_data, training_X, test_sets, test_X, training_plt, B0
     

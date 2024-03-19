@@ -125,39 +125,6 @@ function LSTMDropOut(;cell_dim = 10, seed = 1, drop_prob = 0.1,extrap_value = 0.
     
 end 
 
-function LSTMDropOut(;cell_dim = 10, seed = 1, drop_prob = 0.1,extrap_value = 0.1,extrap_length=0.25)
-    cell_dim = round(Int,cell_dim)
-    LSTM_ = Lux.LSTMCell(2=>cell_dim)
-    DenseLayer = Lux.Chain( Lux.Dense( cell_dim +1 => cell_dim), Lux.Dropout(drop_prob),Lux.Dense(cell_dim=>1))
-    
-    Random.seed!(round(Int,seed)); rng = Random.default_rng() 
-    LSTM_parameters, LSTM_states = Lux.setup(rng,LSTM_) 
-    dense_parameters, dense_states = Lux.setup(rng, DenseLayer)
-    rng = Random.default_rng()  
-    parameters = (Dense = dense_parameters,LSTM = LSTM_parameters,x0 = [4.0,0])
-    
-    function predict(u, dt,parameters)
-        x = reshape(u[1:1],1,1)
-        (y, c), st_lstm = LSTM_(reshape(parameters.x0,2,1),parameters.LSTM, LSTM_states)
-        r, states = DenseLayer(vcat(x,y),parameters.Dense,dense_states)
-        x = u[1] + dt*r[1] - dt*u[2]
-        return [x,u[2]],r[1],(c, st_lstm, u[1], u[2])
-    end 
-    
-    function predict(u,aux, dt,parameters)
-        x = reshape(u[1:1],1,1); c, st_lstm, ut1, ft1 = aux
-        (y, c), st_lstm = LSTM_((reshape([ut1,ft1],2,1),c),parameters.LSTM, st_lstm)
-        r, states = DenseLayer(vcat(x,y),parameters.Dense,dense_states);
-        x = u[1] + dt*r[1] - dt*u[2]
-        return [x,u[2]], r[1], (c, st_lstm, u[1], u[2])
-    end 
-    
-    forecast_F, forecast_H = init_forecast(predict,extrap_value,extrap_length)
-    
-    return predict, parameters, forecast_F, forecast_H
-    
-end 
-
 function DelayEmbedding(;lags=5,hidden = 10, seed = 1, extrap_value = 0.1, extrap_length=0.25)
     dims_in =  round(Int,1+2*lags)
     hidden =  round(Int,hidden)
@@ -220,7 +187,7 @@ function DelayEmbeddingARD(;lags=5,hidden = 10, seed = 1, extrap_value = 0.1, ex
     
 end 
 
-function DelayEmbeddingDropOut(; lags = 5, hidden = 10, drop_prob = 0.1, seed = 1, extrap_value=0.01, l = 0.25)
+function DelayEmbeddingDropOut(; lags = 5, hidden = 10, drop_prob = 0.1, seed = 1, extrap_value=0.01, extrap_length = 0.25)
     
     # initial neurla Network
     NN = Lux.Chain( Lux.Dense(1+2*lags,hidden,tanh), Lux.Dropout(drop_prob), Lux.Dense(hidden,1))

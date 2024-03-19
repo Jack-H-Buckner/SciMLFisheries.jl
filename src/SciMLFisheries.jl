@@ -8,4 +8,6 @@ include("StockAssessments.jl")
 include("ModelTesting.jl")
 include("SimulationModels.jl")
 
-end 
+export SurplusProduction, gradient_decent!, BFGS!, plot_state_estiamtes, plot_predictions, plot_forecast, leave_future_out_cv
+
+end # module 

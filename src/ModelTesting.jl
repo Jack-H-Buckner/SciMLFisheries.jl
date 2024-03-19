@@ -518,7 +518,7 @@ function plot_simulation_test(seed,model,simulator; verbos = false, maxiter1 = 5
     plot!(plt2,test_sets[1].t,test_sets[1].H, label = "true")
     plts = (plt1,plt2)
    
-    for i in 2:length(test_sets)
+    for i in eachindex(test_sets)[2:end]
         plot_forecast!(plts,test_model,test_sets[i])
     end
     
@@ -572,7 +572,7 @@ end
 function plot_simulation_tests(MSE,Ntests;label = "",color = 1)
     mean_ =simulaiton_test_means(MSE,Ntests)
     p1 = Plots.plot(1:length(mean_),mean_, label = label, xlabel = "time", ylabel = "Absolute Error", c = color, width = 2)
-    for i in 1:length(MSE)
+    for i in eachindex(MSE)
          Plots.plot!(p1,1:length(MSE[i]),MSE[i], c = color, alpha = 0.5, width = 0.75, label = "")
     end 
     return p1
@@ -581,7 +581,7 @@ end
 function plot_simulation_tests!(plt,MSE,Ntests;label = "", color = 2)
     mean_ =simulaiton_test_means(MSE,Ntests)
     Plots.plot!(plt,1:length(mean_),mean_, label = label, xlabel = "time", ylabel = "Absolute Error", c = color, width = 2)
-    for i in 1:length(MSE)
+    for i in 1:eachindex(MSE)
          Plots.plot!(plt,1:length(MSE[i]),MSE[i], c = color, alpha = 0.5, width = 0.75, label = "")
     end 
 end 
