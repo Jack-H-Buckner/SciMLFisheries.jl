@@ -8,5 +8,5 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/Jack-H-Buckner/SciMLFisheries.jl.git",
+    repo = "github.com/Jack-H-Buckner/SciMLFisheries.jl",
 )
