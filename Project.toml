@@ -1,0 +1,13 @@
+name = "SciMLFisheries"
+uuid = "2dc4081e-a7c6-4028-abb0-d57924c656e5"
+authors = ["Jack H. Buckner"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
