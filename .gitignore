@@ -1,3 +1,5 @@
 /Manifest.toml
 .vscode
 .docs/build/
+*.ipynb
+.ipynb_checkpoints

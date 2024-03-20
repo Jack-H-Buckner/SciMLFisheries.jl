@@ -45,7 +45,7 @@ The change in biomass between periods is determined by the per capita population
 log(B_{t+1}) = log(B_t) + \Delta t \times (r_t - F_t) + \nu_{B,t} \\
     \nu_{B,t} \sim N(0,\sigma_B)
 ```
-The growth rates ``r_t`` are modeld as a function of the current biomass ``log(B_t)`` and the biomass and fishing mortality in earlier time periods ``\{log(B_{t-1},B_{t-1},...,\B_{t-\tau}, F_{t-1}, F_{t-2},...,F_{t-\tau})\}``. This function is estimated using neural networks. SciMLFishieres provides several neural network architectures, which are discussed in the following section.
+The growth rates ``r_t`` are modeld as a function of the current biomass ``log(B_t)`` and the biomass and fishing mortality in earlier time periods ``{ log(B_{t-1},B_{t-1},...,\B_{t-\tau}, F_{t-1}, F_{t-2},...,F_{t-\tau}) }``. This function is estimated using neural networks. SciMLFishieres provides several neural network architectures, which are discussed in the following section.
 
 
 The fishing mortality rates ``F_t`` are given a random walk prior with variance parameter ``\sigma_F`` that controls how rapidly the estimated fishing mortality rates change over time. 
