@@ -72,10 +72,26 @@ Initailizes a surplus production model to fit to the data set.
  - data, a DataFrames.jl data frame with columns for time `t`, harvest `H`, and a relative abundance index `y`.
 
 # Key words
-- production_model, a string specifying the produciton model. Default = "DelayEmbedding", options = ["DelayEmbedding","FeedForward","LSTM","DelayEmbeddingARD","DelayEmbeddingDropOut","LSTMDropOut]
-- harvest_model, a string specifying the harvest model. Default = "DiscreteAprox", options = ["DiscreteAprox", "LinearAprox"]
-- index_model="Linear", 
-- regularizaiton_type = "L1",
+- production_model, a string specifying the produciton model. Default = "DelayEmbedding", 
+    ## options:
+    - "DelayEmbedding" 
+    - "FeedForward"
+    -  "LSTM"
+    - "DelayEmbeddingARD"
+    - "DelayEmbeddingDropOut"
+    - "LSTMDropOut
+- harvest_model, a string specifying the harvest model. Default = "DiscreteAprox"
+    ## options 
+        - "DiscreteAprox"
+        - "LinearAprox"
+- index_model
+    ## options 
+    - "Linear"
+    - "Nonlinear
+- regularizaiton_type
+    ## options
+    - "L1"
+    - "L2"
 - regularizaiton_weight = 10.0^-4,
 - loss="MSE",
 - process_weights = [2.0,0.1],
