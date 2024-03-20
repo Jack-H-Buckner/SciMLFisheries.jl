@@ -19,7 +19,7 @@ function Hyperstability(u,p)
     return p.b*u[1] - p.q
 end 
 
-function DataModel(harvest,index,loss,harvest_weight,index_weight,N)
+function DataModel(harvest,index,loss,sigma_harvest,sigma_index)
  
     # Harvest link function 
     harvest_model = x -> 0
@@ -47,10 +47,10 @@ function DataModel(harvest,index,loss,harvest_weight,index_weight,N)
     
     # likelihood function 
     loss_function = x -> 0;loss_params = NamedTuple()
-    if loss == "MSE"
-        loss_function,loss_params = WeightedMSE([harvest_weight,index_weight],N)
-    elseif loss == "Noraml"
-        loss_function,loss_params = Normal([harvest_weight,index_weight])
+    if loss == "FixedVariance"
+        loss_function,loss_params = FixedVariance([sigma_harvest,sigma_index]) 
+    elseif loss == "EstimateVariance"
+        loss_function,loss_params = EstimateVariance([sigma_harvest,sigma_index])
     else
         print("Your choice of likelihood does not match avaiable options")
         throw(error()) 
@@ -60,7 +60,7 @@ function DataModel(harvest,index,loss,harvest_weight,index_weight,N)
     function link(u,r,dt,p)
         yt = index_model(u,p)
         H = harvest_model(u,r,dt) 
-        return [yt,H]
+        return [yt,log(H)]
     end
         
     return link, loss_function, loss_params,link_params

@@ -41,7 +41,7 @@ function init_loss(times,dt_final,data,predict,process_loss,link,observation_los
         # regularization
         L_reg = process_regularization(parameters.predict)
         L_reg += observation_regularization(parameters.link)
-        
+
         return L_obs + L_proc + L_reg
     end
     
@@ -95,7 +95,7 @@ Initailizes a surplus production model to fit to the data set.
 - regularizaiton_weight = 10.0^-4,
 - loss="MSE",
 - process_weights = [2.0,0.1],
-- observaiton_weights = [0.5,0.5],
+- observation_weights = [0.5,0.5],
 - produciton_hyper_parameters = NamedTuple(),
 - prior_q = 0.0,
 - prior_b = 1.0,
@@ -108,9 +108,9 @@ function SurplusProduction(data;
         regularizaiton_type = "L1",
         regularizaiton_weight = 10.0^-4,
         index_model="Linear",
-        loss="MSE",
-        process_weights = [2.0,0.1],
-        observaiton_weights = [0.5,0.5],
+        loss="FixedVariance",
+        process_weights = [0.5,1.0],
+        observation_weights = [0.25,0.1],
         produciton_hyper_parameters = NamedTuple(),
         prior_q = 0.0,
         prior_b = 1.0,
@@ -128,7 +128,7 @@ function SurplusProduction(data;
     predict,parameters,forecast_F,forecast_H,process_loss,loss_params = ProductionModel(production_model,loss,process_weights[1],process_weights[2],T,produciton_hyper_parameters)
     
     # observaiton model 
-    link,observation_loss,loss_params_obs,link_params=DataModel(harvest_model,index_model,loss,observaiton_weights[1],observaiton_weights[2],T)
+    link,observation_loss,loss_params_obs,link_params=DataModel(harvest_model,index_model,loss,observation_weights[1],observation_weights[2],T)
 
     # production regularization
     if (production_model == "DelayEmbeddingARD") && (typeof(regularizaiton_weight) == Float64)
@@ -153,7 +153,7 @@ function SurplusProduction(data;
     # parameters
     parameters = ComponentArray((uhat = zeros(size(data)),predict = parameters, process_loss = loss_params, link = link_params, observation_loss = loss_params_obs))
 
-    constructor = data -> SurplusProduction(data;production_model=production_model,harvest_model=harvest_model,regularizaiton_type=regularizaiton_type,regularizaiton_weight=regularizaiton_weight,index_model=index_model,loss=loss,process_weights=process_weights,observaiton_weights=observaiton_weights,produciton_hyper_parameters=produciton_hyper_parameters,prior_q=prior_q,prior_weight=prior_weight)
+    constructor = data -> SurplusProduction(data;production_model=production_model,harvest_model=harvest_model,regularizaiton_type=regularizaiton_type,regularizaiton_weight=regularizaiton_weight,index_model=index_model,loss=loss,process_weights=process_weights,observation_weights=observation_weights,produciton_hyper_parameters=produciton_hyper_parameters,prior_q=prior_q,prior_weight=prior_weight)
    
     return SurplusProduction(times,dt_final,data,dataframe,[],parameters,predict,forecast_F,forecast_H,link,loss_function,constructor)
 

@@ -1,11 +1,11 @@
-function WeightedMSE(weights, N)
+function FixedVariance(sigmas)
     parameters = NamedTuple()
-    loss = (u,uhat,parameters) -> sum(weights .* (u .- uhat).^2)/N
+    loss = (u,uhat,parameters) -> sum(((u .- uhat)./sigmas).^2)
     return loss, parameters
 end
 
 
-function Normal(sigma_0)
+function EstimateVariance(sigma_0)
     parameters = (sigma = sigma_0)
     
     function loss(u,uhat,parameters) 

@@ -39,7 +39,7 @@ function process_surplus_production_data(data)
     # Times
     dataframe = sort!(data,[time_alias])
     times = dataframe[:,time_alias]
-    data = transpose(Matrix(dataframe[:,[index_alias,harvest_alias]]))
+    data = log.(transpose(Matrix(dataframe[:,[index_alias,harvest_alias]])))
 
     T = length(times)
 
