@@ -7,7 +7,7 @@ SciMLFisheries uses the julia scientific machine learning ecosystem to build fis
 ## Getting starterd
 
 SciMLFisheries is still in development and not avaible on the julia registery, but can be accessed through github. To download the pacakge open julia and type the following comands.
-```julia
+```
 ]add https://github.com/jack-h-buckner/SciMLFisheries.jl
  using SciMLFisheries
 ```
