@@ -36,14 +36,14 @@ log(H_t) = log(B_t) + log(F_t) + log(\theta) + \epsilon_{H_t} \\
 ```
 We also provide an approximation that assumes fishing mortality is constant over the interval and that the population dynamics can be approximated over the interval with exponential growth (or decay). This results in a more complicated expression that includes the per capita growth rate of the population ``r_t`` and adds the additional assumption the abundance index ``i_t`` is measured at the beginning of the period
 ```math
-H_t = log(\theta) + log(F_t) +  log(B_t) + log(e^{(r_t-F_t)* \Delta t - 1 ) - log(r_t-F_t) + \epsilon_{H_t} \\
+H_t = log(\theta) + log(F_t) +  log(B_t) + log(e^{(r_t-F_t)* \Delta t} - 1 ) - log(r_t-F_t) + \epsilon_{H_t} \\
     \epsilon_{H,t} \sim N(0,\sigma_H).
 ```
 
 The change in biomass between periods is determined by the per capita population growth rate ``r_t``, the fishing mortality rate ``F_t``, process errors ``\nu_t``, and the length of time between observations ``\Delta t``
 ```math
 log(B_{t+1}) = log(B_t) + \Delta t \times (r_t - F_t) + \nu_{B,t} \\
-    \nu_{B,t] \sim N(0,\sigma_B)
+    \nu_{B,t} \sim N(0,\sigma_B)
 ```
 The growth rates ``r_t`` are modeld as a function of the current biomass ``log(B_t)`` and the biomass and fishing mortality in earlier time periods ``\{log(B_{t-1},B_{t-1},...,\B_{t-\tau}, F_{t-1}, F_{t-2},...,F_{t-\tau})\}``. This function is estimated using neural networks. SciMLFishieres provides several neural network architectures, which are discussed in the following section.
 
