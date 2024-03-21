@@ -41,7 +41,7 @@ function init_loss(times,dt_final,data,predict,process_loss,link,observation_los
         # regularization
         L_reg = process_regularization(parameters.predict)
         L_reg += observation_regularization(parameters.link)
-        L_reg += variance_prior(paramters.observation_loss, parameters.process_loss)
+        L_reg += variance_prior(parameters.observation_loss, parameters.process_loss)
 
         return L_obs + L_proc + L_reg
     end
@@ -59,6 +59,8 @@ mutable struct SurplusProduction
     forecast_F
     forecast_H
     link
+    observation_loss
+    process_loss
     loss_function
     constructor
 end
@@ -130,7 +132,7 @@ function SurplusProduction(data;
     produciton_hyper_parameters[keys(new_produciton_hyper_parameters)] .= new_produciton_hyper_parameters
     
     # production model 
-    predict,parameters,forecast_F,forecast_H,process_loss,loss_params = ProductionModel(production_model,likelihood,process_weights[1],process_weights[2],T,produciton_hyper_parameters)
+    predict,parameters,forecast_F,forecast_H,process_loss,loss_params = ProductionModel(production_model,likelihood,process_weights[1],process_weights[2],produciton_hyper_parameters)
     
     # observaiton model
     link,observation_loss,loss_params_obs,link_params=DataModel(harvest_model,index_model,likelihood,observation_weights[1],observation_weights[2])
@@ -155,8 +157,8 @@ function SurplusProduction(data;
     variance_prior = (observation,process) -> 0.0
     if likelihood=="EstimateVariance"
         new_variance_priors = ComponentArray(variance_priors)
-        variance_priors = ComponentArray((var_y=0.05,sigma_y=0.05,rH=0.25,sigma_rH=0.1,rB=1.0,sigma_rB=0.1,rF=5.0,sigma_rF=0.25))
-        variance_priors[keys(variance_priors)] .= new_variance_priors
+        variance_priors = ComponentArray((var_y=0.05,sigma_y=0.05,rH=0.25,sigma_rH=0.025,rB=1.0,sigma_rB=0.1,rF=5.0,sigma_rF=0.25))
+        variance_priors[keys(new_variance_priors)] .= new_variance_priors
         variance_prior = init_variance_prior(variance_priors.var_y, variance_priors.sigma_y, variance_priors.rH, variance_priors.sigma_rH, variance_priors.rB,variance_priors.sigma_rB, variance_priors.rF, variance_priors.sigma_rF)
     end 
 
@@ -169,6 +171,6 @@ function SurplusProduction(data;
 
     constructor = data -> SurplusProduction(data;production_model=production_model,harvest_model=harvest_model,regularizaiton_type=regularizaiton_type,regularizaiton_weight=regularizaiton_weight,index_model=index_model,likelihood=likelihood,process_weights=process_weights,observation_weights=observation_weights,produciton_hyper_parameters=produciton_hyper_parameters,prior_q=prior_q,prior_weight=prior_weight,variance_priors=variance_priors)
    
-    return SurplusProduction(times,dt_final,data,dataframe,[],parameters,predict,forecast_F,forecast_H,link,loss_function,constructor)
+    return SurplusProduction(times,dt_final,data,dataframe,[],parameters,predict,forecast_F,forecast_H,link,observation_loss, process_loss,loss_function,constructor)
 
 end 

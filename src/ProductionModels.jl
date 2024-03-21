@@ -217,7 +217,7 @@ function DelayEmbeddingDropOut(; lags = 5, hidden = 10, drop_prob = 0.1, seed = 
     
 end 
 
-function ProductionModel(model,loss,B_weight,F_weight,N,pars)
+function ProductionModel(model,loss,sigma_B,sigma_F,pars)
     
     # Harvest link function 
     predict=x->0;parameters=x->0;forecast_F=x->0;forecast_H=x->0
@@ -240,10 +240,10 @@ function ProductionModel(model,loss,B_weight,F_weight,N,pars)
     
     # likelihood function 
     loss_function = x -> 0;loss_params = NamedTuple()
-    if loss == "MSE"
-        loss_function,loss_params = WeightedMSE([B_weight,F_weight],N)
-    elseif loss == "Noraml"
-        loss_function,loss_params = Normal([B_weight,F_weight])
+    if loss == "FixedVariance"
+        loss_function,loss_params = FixedVariance([sigma_B,sigma_F]) 
+    elseif loss == "EstimateVariance"
+        loss_function,loss_params = EstimateVariance([sigma_B,sigma_F])
     else
         print("Your choice of likelihood does not match avaiable options")
         throw(error()) 

@@ -1,18 +1,18 @@
 function FixedVariance(sigmas)
     parameters = NamedTuple()
-    loss = (u,uhat,parameters) -> sum(((u .- uhat)./sigmas).^2)
+    loss = (u,uhat,parameters) -> sum((u .- uhat).^2 ./sigmas.^2 )
     return loss, parameters
 end
 
 
 function EstimateVariance(sigma_0)
-    parameters = (sigma = sigma_0)
+    parameters = (sigma = sigma_0,)
     
     function loss(u,uhat,parameters) 
-        nugget = 10^-6.0
-        Z = 1 ./ (sqrt(2*3.14159)*parameters.sigma .+ nugget)
-        ll = -0.5 * (u .- uhat).^2 ./ (parameters.sigma .^2 .+ nugget)
-        return sum(ll .+ log.(Z))  
+        V = parameters.sigma.^2 .+ 10^-8.0
+        Z = 0.5*log.(V)
+        ll = 0.5 * (u .- uhat).^2 ./ V
+        return sum(ll .+ Z)  
     end
         
     return loss, parameters
@@ -24,14 +24,14 @@ function gamma_parameters(mean,variance)
     return k, theta
 end 
 
-gamma_lpdf(sigma,k,theta) = (k-1)*log(sigma) - sigma/theta
+gamma_lpdf(sigma,k,theta) = -1 * ((k-1)*log(sigma) - sigma/theta)
 
 function variance_ratio_prior(sigma_y,sigma_H,sigma_B,sigma_F,k_y,theta_y,k_H,theta_H,k_B,theta_B,k_F,theta_F)
     
-    Ly = gamma_lpdf(sigma_y,k_y,theta_y)
-    LrH = gamma_lpdf(sigma_H / sigma_y, k_H, theta_H)
-    LrB = gamma_lpdf(sigma_B / sigma_y, k_B, theta_B)
-    LrF = gamma_lpdf(sigma_F / sigma_y, k_F, theta_F)
+    Ly = gamma_lpdf(sigma_y^2,k_y,theta_y)
+    LrH = gamma_lpdf(sigma_H^2 / sigma_y^2, k_H, theta_H)
+    LrB = gamma_lpdf(sigma_B^2 / sigma_y^2, k_B, theta_B)
+    LrF = gamma_lpdf(sigma_F^2 / sigma_y^2, k_F, theta_F)
 
     return Ly + LrH + LrB + LrF
 end

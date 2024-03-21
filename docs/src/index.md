@@ -15,12 +15,12 @@ SciMLFisheries uses a state space modeling framework. State space models are a c
 
 The surplus production models describe two data sources, harvest ``H_t`` and a relative abundance index ``y_t``. Using these two data sources, the models estimate two state variables, the population biomass ``B_t`` and fishing mortality rate ``F_t``. There are two built-in observation models for the abundance index. The first assumes a proportional relationship between biomass and the abundance index with a scaling factor ``q`` and with normally distributed observaiton errors with variance ``\sigma^2``
 ```math
-log(B_t) = t_t - q + \epsilon_{y,t}\\
+log(B_t) = log(y_t) - q + \epsilon_{y,t}\\
 \epsilon_{y,t} \sim N(0,\sigma_y).
 ```
 The second model allows for some nonlinearity in the relationship by adding a third parameter ``b``
 ```math
-log(B_t) = b y_t - q + \epsilon_{y,t}\\
+log(B_t) = blog(y_t) - q + \epsilon_{y,t}\\
 \epsilon_{y,t} \sim N(0,\sigma_y).
 ```
 When ``b`` is less than one, the index is more sensitive to changes in biomass when the stock has a low abundance, and when ``b`` is less than one, the index is more sensitive to changes when the stock is large.
@@ -29,14 +29,14 @@ We also include two models for harvest. In general, harvest can be modeled in co
 ```math
 H_t = \int_{t}{t+\Delta t} \theta B(u)F(u)du,
 ```
-where ``\theta`` is a conversion factor that accounts for the portion of fish killed by the fishery that is not landed and counted in harvest statistics. Our modeling framework uses a discrete-time formulation, so biomass and fishing mortality are only estimated at a single point during each period, and we must approximate the integral in the harvest equations. The simplest approximation is the product of the fishing mortality, biomass, scaling parameter, and a long normal error term with variance ``\sigma_H``
+where ``\theta`` is a conversion factor that accounts for the portion of fish killed by the fishery that is not landed and counted in harvest statistics. Our modeling framework uses a discrete-time formulation, so biomass and fishing mortality are only estimated at a single point during each period, and we must approximate the integral in the harvest equations. The simplest approximation is the product of the fishing mortality, biomass, scaling parameter, and a normally distributed error term with variance ``\sigma_H``
 ```math
-log(H_t) = log(B_t) + log(F_t) + log(\theta) + \epsilon_{H_t} \\
+H_t = \theta B_t F_t+ + \epsilon_{H_t} \\
     \epsilon_{H,t} \sim N(0,\sigma_H).
 ```
 We also provide an approximation that assumes fishing mortality is constant over the interval and that the population dynamics can be approximated over the interval with exponential growth (or decay). This results in a more complicated expression that includes the per capita growth rate of the population ``r_t`` and adds the additional assumption the abundance index ``i_t`` is measured at the beginning of the period
 ```math
-H_t = log(\theta) + log(F_t) +  log(B_t) + log(e^{(r_t-F_t)* \Delta t} - 1 ) - log(r_t-F_t) + \epsilon_{H_t} \\
+H_t = \theta F_t B_t (e^{(r_t-F_t)* \Delta t} - 1 )/(r_t-F_t) + \epsilon_{H_t} \\
     \epsilon_{H,t} \sim N(0,\sigma_H).
 ```
 

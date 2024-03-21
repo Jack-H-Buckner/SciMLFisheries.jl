@@ -515,9 +515,9 @@ function AgeStuructured(;plot = true, T = 30,
     index = 4.0 * index ./ B0
     nugget = 10^-7
     index[index .<= 0] .= nugget
-    y = log.(index) .+ rand(Distributions.Normal(0.0,sigma_x), length(T))
+    y = log.(index) .+ rand(Distributions.Normal(0.0,sigma_x), length(index))
         
-    H = 4.0 * Hls./B0 .+ Hls.*rand(Distributions.Normal(0.0,sigma_H), length(T))
+    H = 4.0 * Hls./B0 .+ Hls.*rand(Distributions.Normal(0.0,sigma_H), length(Hls))
 
     training_data = DataFrame(t = 1:T, y = y, H = H)
     training_X = DataFrame(x1 = Rls,)

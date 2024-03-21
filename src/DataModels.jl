@@ -20,7 +20,7 @@ function Hyperstability(u,p)
 end 
 
 function DataModel(harvest,index,loss,sigma_harvest,sigma_index)
- 
+    
     # Harvest link function 
     harvest_model = x -> 0
     if harvest == "DiscreteAprox"
@@ -48,9 +48,9 @@ function DataModel(harvest,index,loss,sigma_harvest,sigma_index)
     # likelihood function 
     loss_function = x -> 0;loss_params = NamedTuple()
     if loss == "FixedVariance"
-        loss_function,loss_params = FixedVariance([sigma_harvest,sigma_index]) 
+        loss_function,loss_params = FixedVariance([sigma_index,sigma_harvest]) 
     elseif loss == "EstimateVariance"
-        loss_function,loss_params = EstimateVariance([sigma_harvest,sigma_index])
+        loss_function,loss_params = EstimateVariance([sigma_index,sigma_harvest])
     else
         print("Your choice of likelihood does not match avaiable options")
         throw(error()) 
@@ -60,7 +60,7 @@ function DataModel(harvest,index,loss,sigma_harvest,sigma_index)
     function link(u,r,dt,p)
         yt = index_model(u,p)
         H = harvest_model(u,r,dt) 
-        return [yt,log(H)]
+        return [yt,H]
     end
         
     return link, loss_function, loss_params,link_params

@@ -30,19 +30,22 @@ function find_index_alias(nms)
 end 
 
 function process_surplus_production_data(data)
+    data_ = deepcopy(data)
+    nugget = 10^-4
     # Get column names
-    nms = names(data)
+    nms = names(data_)
     time_alias = find_time_alias(nms)
     harvest_alias = find_harvest_alias(nms)
     index_alias = find_index_alias(nms)
     
     # Times
-    dataframe = sort!(data,[time_alias])
+    dataframe = sort!(data_,[time_alias])
     times = dataframe[:,time_alias]
-    data = log.(transpose(Matrix(dataframe[:,[index_alias,harvest_alias]])))
+    dataframe[:,index_alias] .= log.(dataframe[:,index_alias] .+ nugget)
+    data_ = transpose(Matrix(dataframe[:,[index_alias,harvest_alias]]))
 
     T = length(times)
 
-    return times,data,dataframe,T
+    return times,data_,dataframe,T
 end
 
