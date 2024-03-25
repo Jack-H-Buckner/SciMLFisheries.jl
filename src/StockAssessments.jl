@@ -68,45 +68,35 @@ end
 """
     SurplusProduction(data;kwargs ...)
 
-Initailizes a surplus production model to fit to the data set.
+Initailizes a surplus production model to fit to the data set with a colum for time, harvest and the abundnace index. 
+    
+table 1: example data set 
+|t  | y  |H   |
+|---|----|----|
+|0  | 1.0|0.1 |
+|1  |0.95|0.15|
+|2  |0.925|0.125|
+|...|...|...|    
+A number of key work arguments are used to modify the models behavior. Each of the key words specifies a specific model sturcture or model behavior, see the section on model types for details. 
 
-...
-# Arguments
- - data, a DataFrames.jl data frame with columns for time `t`, harvest `H`, and a relative abundance index `y`.
+```julia
+SurplusProduction(data;
+        production_model = DelayEmbedding, # options = ["FeedForward","LSTM","DelayEmbeddingARD","DelayEmbeddingDropOut","LSTMDropOut"]
+        harvest_model = "DiscreteAprox", # options = ["FeedForward"]
+        index_model = "Linear, # index_model = ["Nonlinear"]
+        regularizaiton_type = "L2", # options = ["L1]
+        regularizaiton_weight = 10^-4, # options Real
+        loss = "FixedVariance", # options = ["EstimateVariance"]
+        process_weights = [0.5,1.0], # options:  Vector{Real}
+        observation_weights = [0.25,0.1], # options: Vector{Real}
+        produciton_hyper_parameters = NamedTuple(), # options: Naned tuple with keys (lags=Int,hidden=Int,cell_dim=Int,seed=Int,drop_prob=Real in [0,1],extrap_value=Real,extrap_length=Real)
+        prior_q = 0.0, # options: Real
+        prior_b = 0.0 # options: Real
+        prior_weight = 0.0 # options = Real
+        variance_priors = NamedTuple() # named tuple with keys (var_y=Real,sigma_y=Real,rH=Real,sigma_rH=Real,rB=Real,sigma_rB=Real,rF=Real,sigma_rF=Real)
+    )
+```
 
-# Key words
-- production_model, a string specifying the produciton model. Default = "DelayEmbedding", 
--   - options:
-    - "DelayEmbedding" 
-    - "FeedForward"
-    -  "LSTM"
-    - "DelayEmbeddingARD"
-    - "DelayEmbeddingDropOut"
-    - "LSTMDropOut
-- harvest_model, a string specifying the harvest model. Default = "DiscreteAprox"
-    - options:
-    - "DiscreteAprox"
-    - "LinearAprox"
-- index_model
-    - options:
-    - "Linear"
-    - "Nonlinear
-- regularizaiton_type
--   - options:
-    - "L1"
-    - "L2"
-- regularizaiton_weight = 10.0^-4,
-- loss, the choice in liklihood function. Default = "FixedVariance"
-    - options
-    - "FixedVariance"
-    - "EstimateVariance"
-- process_weights = [0.5,1.0],
-- observation_weights = [0.25,0.1],
-- produciton_hyper_parameters = NamedTuple(),
-- prior_q = 0.0,
-- prior_b = 1.0,
-- prior_weight = 0.0
-...
 """
 function SurplusProduction(data;
         production_model = "DelayEmbedding",
