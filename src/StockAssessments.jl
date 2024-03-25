@@ -71,12 +71,14 @@ end
 Initailizes a surplus production model to fit to the data set with a colum for time, harvest and the abundnace index. 
     
 table 1: example data set 
+
 |t  | y  |H   |
 |---|----|----|
 |0  | 1.0|0.1 |
 |1  |0.95|0.15|
 |2  |0.925|0.125|
 |...|...|...|    
+
 A number of key work arguments are used to modify the models behavior. Each of the key words specifies a specific model sturcture or model behavior, see the section on model types for details. 
 
 ```julia
