@@ -54,7 +54,7 @@ log(F_{t+1}) = log(F_{t-1}) + \nu_{F,t} \\
     \nu_{F,t} \sim N(0,\sigma_F).
 ```
 
-## Produciton models
+The model building seciton that follows includes a detailed description of the options avaible for the production and observation models along with the code needed to implement them. 
 
 
 ## Package Contents
