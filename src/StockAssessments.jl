@@ -83,10 +83,10 @@ A number of key work arguments are used to modify the models behavior. Each of t
 
 ```julia
 SurplusProduction(data;
-        production_model = DelayEmbedding, # options = ["FeedForward","LSTM","DelayEmbeddingARD","DelayEmbeddingDropOut","LSTMDropOut"]
+        production_model = "DelayEmbedding", # options = ["FeedForward","LSTM","DelayEmbeddingARD","DelayEmbeddingDropOut","LSTMDropOut"]
         harvest_model = "DiscreteAprox", # options = ["FeedForward"]
-        index_model = "Linear, # index_model = ["Nonlinear"]
-        regularizaiton_type = "L2", # options = ["L1]
+        index_model = "Linear", # index_model = ["Nonlinear"]
+        regularizaiton_type = "L2", # options = ["L1"]
         regularizaiton_weight = 10^-4, # options Real
         loss = "FixedVariance", # options = ["EstimateVariance"]
         process_weights = [0.5,1.0], # options:  Vector{Real}
