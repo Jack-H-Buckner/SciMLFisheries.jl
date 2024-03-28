@@ -23,7 +23,7 @@ The second model allows for some nonlinearity in the relationship by adding a th
 log(B_t) = blog(y_t) - q + \epsilon_{y,t}\\
 \epsilon_{y,t} \sim N(0,\sigma_y).
 ```
-When ``b`` is less than one, the index is more sensitive to changes in biomass when the stock has a low abundance, and when ``b`` is less than one, the index is more sensitive to changes when the stock is large.
+When ``b`` is less than one, the index is more sensitive to changes in biomass when the stock has a low abundance, and when ``b`` is greater than one, the index is more sensitive to changes when the stock is large.
 
 We also include two models for harvest. In general, harvest can be modeled in continuous time as a function of biomass and the fishing mortality rate
 ```math
@@ -46,7 +46,6 @@ log(B_{t+1}) = log(B_t) + \Delta t \times (r_t - F_t) + \nu_{B,t} \\
     \nu_{B,t} \sim N(0,\sigma_B)
 ```
 The growth rates ``r_t`` are modeld as a function of the current biomass ``log(B_t)`` and the biomass and fishing mortality in earlier time periods ``{ log(B_{t-1},B_{t-1},...,\B_{t-\tau}, F_{t-1}, F_{t-2},...,F_{t-\tau}) }``. This function is estimated using neural networks. SciMLFishieres provides several neural network architectures, which are discussed in the following section.
-
 
 The fishing mortality rates ``F_t`` are given a random walk prior with variance parameter ``\sigma_F`` that controls how rapidly the estimated fishing mortality rates change over time. 
 ```math

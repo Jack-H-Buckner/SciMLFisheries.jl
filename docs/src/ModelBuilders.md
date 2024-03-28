@@ -60,33 +60,123 @@ model = SurplusProduction(data,
 
 Regularization and dropout can control the degree of nonlinearity incorporated in the model, but they do not directly control the number of inputs. To handle this challenge, we developed a regularization method that attempts to detect the relevant model inputs automatically and sets the effect of all other inputs to zero. This is done by multipying the neural network inputs ``X_t = {B_t, B_{t-1}, ..., F_{t-1}, F_{t-2}, ...}`` by a vector ``I_r``, before the are fed into the neural network. This produces a model of the form
 
-
 ```math
    r_t = NN(I_r \circ X_t; w, b)
 ```
 On its own, this model structure does not reduce overfitting, but it allows us to directly regularize the network inputs. Specifically, we use L1 regularization on the input vector ``I_r`` and L2 regularization on the neural network weights. L1 regularization will force parameters to equal zero if they are not contributing adequately to the model performance; this allows the model to detect and remove irrelevant variables automatically. Applying L2 regularization to the network weights controls the degree of non-linearity of the fitted model. This regularization scheme can independently address the two primary degrees of freedom that lead to overfitting, variable selection, and nonlinearity. To construct a model of the form, use `"DelayEmbeddingARD"` as the process model. All keyword arguments are the same as the standard Delay embedding model, except it is possible to specify differnt weights for the L1 and L2 regularization steps by passing a named tuple to the `regularizaiton_weight` argument. If only a single value is supplied it will be applied to both L1 and L2 staged
 
+```julia
+using UniversalDiffEq
+model = SurplusProduction(data,
+                        production_model = "DelayEmbeddingARD", # options Int
+                        regularizaiton_weight = (L1 = 10^-3.5, L2 = 10^-3.5))
+```
+
+### Recurrent nerual networks
+
+Another way to include prior observations in the model predictions is with recurrent neural networks (RNN). RNNs predict the value of a set of hidden variables ``h_t`` each time step based on the value of the hidden variables in the prior time step ``h_{t-1}`` and the biomass and fishing mortality. The value of the hidden states is combined with biomass to predict each time step. The model learns a function ``f_h(B_t,F_t,h_t)`` to update the hidden states along with a function ``f_r(B_t,h_t)`` to make prediction ``r_t`` using the hidden states The full model can be written as a system of two equations, one for the hidden states and one for the predictions
+```math
+h_t = F_h(B_t,F_t,h_t) \\
+r_t = F_r(B_t,h_t).
+```
+In the training process, the model can learn what information it needs to use from prior observations to make accurate predictions and store that information in the hidden states.
+
+There are many possible architectures for recurrent neural networks, but we have chosen to focus on long short-term memory networks (LSTMs) since they are known to perform well on a variety of tasks. SciMLFisheries has two LSTM architectures, a standard LSTM model `"LSTM"` and an LSTM with dropout `"LSTMDropOut".` For LSTM models, the number of hidden variables is chosen by adding `cell_dim` to the production_hyper_parameters argument. All other key work arguments have their usual function except for `hidden`, which does not affect the model.
+```julia
+using UniversalDiffEq
+model = SurplusProduction(data,
+                       production_model = "LSTM", # options Int
+                       produciton_hyper_parameters = (cell_dim=10))
+```
+When a dropout layer is included, the `drop_prob` parameter determines the probability a weight is set to zero in the training process.
+```julia
+using UniversalDiffEq
+model = SurplusProduction(data,
+                       production_model = "LSTMDropOut", # options Int
+                       produciton_hyper_parameters = (cell_dim = 10, drop_prob = 0.1))
+```
+
+### Feed-Forward Networks
+
+the feed-forward class of models uses a feed-forward neural network to represent a nonlinear relationship between the current stock and the growth rate without including any prior observations. These are effectively non-parametric versions of standard surplus production models. Feed-forward networks take all of the same keyword arguments as the standard delay embedding model, except for `lags`, which does not apply.
+```julia
+using UniversalDiffEq
+model = SurplusProduction(data,
+                       production_model = "FeedForward",
+                       produciton_hyper_parameters = (hidden=10,seed=123,extrap_value=0.0,extrap_length=0.5),
+                       regularizaiton_type = "L2", # options ["L2", "L1"]
+                       regularizaiton_weight = 10^-4 # options Real {x | x >= 0}
+                       )
+```
+
+
+## Observation models
+
+
+The observation model describes two data sources, harvest ``H`` and an abundance index ``y``. There are two options for each of these data sources for a total of four possible models. We assume the true harvest process can be described in continuous time by integrating the product of fishing mortality and biomass over time between observations. The two harvest models provide alternative approximations for this integral. The index models represent the relationship between the population biomass and the abundnace index. The default model `"Linear"` assumes a proportional relationship, and the alternative `"HyperStability"` allows for a small amount of nonlinearity.
+
+
+
+
+The two observations models `"DiscreteAprox"` and `"LinearAprox"` approximate the integral by assuming fishing mortality is constant over the time interval; `"DiscreteAprox"` assumes biomass is constant as well while `"LinearAprox"` assumes the stock grows or declines exponentially. 
+### Harvest: discrete approximation
+
+
+The discrete approximation to the harvest model is used by default. It approximates the fishing mortality and biomass as constants across each time period. The keyword argument `theta` is associated with both harvest models. It determines the proportion of catch reported in the harvest statistics; `theta < 1.0` implies that some fish that are caught by the fishery are not included in the landings statistics. This may be useful for fisheries where the harvest is calculated by sampling a subset of anglers, which is common in recreational fisheries or in fisheries where a portion of the catch is discarded.
+
 
 ```julia
 using UniversalDiffEq
 model = SurplusProduction(data,
-                        production_model = "DelayEmbeddingDropOut", # options Int
-                        regularizaiton_weight = (L1 = 10^-3.5, L2 = 10^-3.5))
+                       harvest_model = "DiscreteAprox",
+                       theta = 1.0 # the fraction of the catch that is reported. options: Real
+                        )
 ```
 
+### Harvest: linear approximation
 
-### Recurrent nerual networks
+The linear approximation assumes that fishing mortality is constant but assumes the abundance of the stock to grow or decay exponentially over the time step. This approximation is useful for stocks with high growth rates when the length between observations is long. The stock’s exponential growth rate is determined by the growth rate estimate `r_t` and fishing mortality `F_t`
+```math
+H_t \approx \int_{t}^{t+\Delta t}\theta F_t B(t)e^{(r-F/\theta)u} du = \theta F_t B_t \frac{e^{(r_t-F_t)\Deltat} - 1}{r_t-F_t}.
+```
+A model based on the linear approximation to the harvest model is built by supplying `"LinearAprox"` to the harvest model argument.
+```julia
+using UniversalDiffEq
+model = SurplusProduction(data,harvest_model = "LinearAprox")
+```
 
+### Index: linear
 
-### Feed Forward Networks
+The default model for the relative abundance index assumes the index ``y_t`` proportional to the abundance of the stock. The model-building function automatically log transforms the abundance index so the proportional relationship becomes additive.
+```math
+y_t = log(B_t) + q.
+```
+The choice in the index model is determined by the value given to the `index_model` keyword argument. Two additional parameters determine the behavior of the index model, `prior_q` and `prior_weight.` These two parameters specify a prior distribution for the scaling parameter `q.` `prior_q` is the a priori expected value, and `prior_weight` is equal to ``1/\sigma^2`` where ``\sigma`` is the standard deviation of a normal distribution. The default sets `prior_q = 0,` which implies that the abundance index is equal to abundance, and `prior_weight = 0.0`, which implies that the priors do not affect the parameter estimates.   
 
+```julia
+using UniversalDiffEq
+model = SurplusProduction(data,
+                             index_model="Linear",
+                             prior_q = 0.0,
+                             prior_weight = 0.0)
+```
 
-## Observation models 
+### Index: Hyperstabillity 
 
-### Discrete approximation 
+The abundance index may be more sensitive to changes in the stock biomass when the stock is scarce or when the stock is abundant. We can account for this source of non-linearity by adding an exponent ``b`` to the index model.  
+```math
+y_t = b log(B_t) + q.
+```
+When `b` is less than one, the index is more sensitive to changes in abundnace when the stock is rare, and when it is greater than one, it is more sensitive to changes in abundance when the stock is large. Passing `"HyperStability"` to the `index_model` argument will build a model using this index model. When using the Hyperstability model, additional keyword arguments are available to set a prior distribution over the exponent `b.` The prior mean for `b` is given by `prior_b,` and the prior weights for both ``q`` and ``b`` are set by passing a NameTuple to the `prior_weights` argument with keys `q` and `b` specifying the priors for the two parameters.  
 
-### Linear approximation 
-
+```julia
+using UniversalDiffEq
+model = SurplusProduction(data,
+                             index_model="HyperStability",
+                             prior_q = 0.0,
+                             prior_b = 1.0,
+                             prior_weight = (q = 0.0, b = 0.0))
+```
 
 ## Uncertianty quantification 
 

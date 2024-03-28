@@ -110,6 +110,7 @@ function SurplusProduction(data;
         process_weights = [0.5,1.0],
         observation_weights = [0.25,0.1],
         produciton_hyper_parameters = NamedTuple(),
+        theta = 1.0,
         prior_q = 0.0,
         prior_b = 1.0,
         prior_weight = 0.0,
@@ -127,7 +128,7 @@ function SurplusProduction(data;
     predict,parameters,forecast_F,forecast_H,process_loss,loss_params = ProductionModel(production_model,likelihood,process_weights[1],process_weights[2],produciton_hyper_parameters)
     
     # observaiton model
-    link,observation_loss,loss_params_obs,link_params=DataModel(harvest_model,index_model,likelihood,observation_weights[1],observation_weights[2])
+    link,observation_loss,loss_params_obs,link_params=DataModel(harvest_model,index_model,likelihood,observation_weights[1],observation_weights[2],theta)
 
     # production regularization
     if (production_model == "DelayEmbeddingARD") && (typeof(regularizaiton_weight) == Float64)

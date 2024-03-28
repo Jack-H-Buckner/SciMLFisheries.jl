@@ -1,14 +1,14 @@
 # Link funcitons 
-function DiscreteAproxHarvest(u,r,dt)
-    return dt*exp(u[1])*u[2]
+function DiscreteAproxHarvest(u,r,dt,theta)
+    return dt*theta*exp(u[1])*u[2]
 end 
 
-function LinearAproxHarvest(u,r,dt)
+function LinearAproxHarvest(u,r,dt,theta)
     F = u[2]; B = exp(u[1])
     if (r-F) == 0 
-        return dt*F*B
+        return dt*theta*F*B
     end
-    return F*B*(exp((r-F)*dt) - 1)/(r-F)
+    return theta*F*B*(exp((r-F/theta)*dt) - 1)/(r-F/theta)
 end 
 
 function LinearIndex(u,p)
@@ -19,14 +19,14 @@ function Hyperstability(u,p)
     return p.b*u[1] - p.q
 end 
 
-function DataModel(harvest,index,loss,sigma_harvest,sigma_index)
+function DataModel(harvest,index,loss,sigma_harvest,sigma_index,theta)
     
     # Harvest link function 
     harvest_model = x -> 0
     if harvest == "DiscreteAprox"
-        harvest_model = DiscreteAproxHarvest
+        harvest_model = (u,r,dt) -> DiscreteAproxHarvest(u,r,dt,theta)
     elseif harvest == "LinearAprox"
-        harvest_model = LinearAproxHarvest
+        harvest_model = (u,r,dt) -> LinearAproxHarvest(u,r,dt, theta)
     else
         print("Your choice of harvest model does not match avaiable options")
         throw(error())   
