@@ -114,6 +114,7 @@ function SurplusProduction(data;
         prior_q = 0.0,
         prior_b = 1.0,
         prior_weight = 0.0,
+        prior_sigma = "none",
         variance_priors = NamedTuple()
     )
     # process data
@@ -130,6 +131,18 @@ function SurplusProduction(data;
     # observaiton model
     link,observation_loss,loss_params_obs,link_params=DataModel(harvest_model,index_model,likelihood,observation_weights[1],observation_weights[2],theta)
 
+    if prior_sigma != "none"
+        if prior_weight != 0
+            @warn "Only use one of the kwargs prior_sigma or prior weight. Using vlaue of prior_sigma."
+        end
+        if typeof(prior_sigma) == Float64
+            prior_weight = 1/prior_sigma^2
+        else
+            prior_weight.q = 1/prior_sigma.q^2
+            prior_weight.b = 1/prior_sigma.b^2
+        end
+    end
+    
     # production regularization
     if (production_model == "DelayEmbeddingARD") && (typeof(regularizaiton_weight) == Float64)
         regularizaiton_weight = (L1 = regularizaiton_weight, L2 = regularizaiton_weight)

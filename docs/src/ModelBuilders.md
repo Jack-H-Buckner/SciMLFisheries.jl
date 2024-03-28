@@ -151,14 +151,14 @@ The default model for the relative abundance index assumes the index ``y_t`` pro
 ```math
 y_t = log(B_t) + q.
 ```
-The choice in the index model is determined by the value given to the `index_model` keyword argument. Two additional parameters determine the behavior of the index model, `prior_q` and `prior_weight.` These two parameters specify a prior distribution for the scaling parameter `q.` `prior_q` is the a priori expected value, and `prior_weight` is equal to ``1/\sigma^2`` where ``\sigma`` is the standard deviation of a normal distribution. The default sets `prior_q = 0,` which implies that the abundance index is equal to abundance, and `prior_weight = 0.0`, which implies that the priors do not affect the parameter estimates.   
+The choice in the index model is determined by the value given to the `index_model` keyword argument. Two additional parameters determine the behavior of the index model, `prior_q` and `prior_weight.` These two parameters specify a prior distribution for the scaling parameter `q.` `prior_q` is the a priori expected value, and `prior_sigma` is the standard deviation of a normal distribution. The default sets `prior_q = 0,` which implies that the abundance index is equal to abundance, and `prior_sigma = Inf`, which implies that the priors do not affect the parameter estimates.   
 
 ```julia
 using UniversalDiffEq
 model = SurplusProduction(data,
                              index_model="Linear",
                              prior_q = 0.0,
-                             prior_weight = 0.0)
+                             prior_sigma = 0.1)
 ```
 
 ### Index: Hyperstabillity 
@@ -167,7 +167,7 @@ The abundance index may be more sensitive to changes in the stock biomass when t
 ```math
 y_t = b log(B_t) + q.
 ```
-When `b` is less than one, the index is more sensitive to changes in abundnace when the stock is rare, and when it is greater than one, it is more sensitive to changes in abundance when the stock is large. Passing `"HyperStability"` to the `index_model` argument will build a model using this index model. When using the Hyperstability model, additional keyword arguments are available to set a prior distribution over the exponent `b.` The prior mean for `b` is given by `prior_b,` and the prior weights for both ``q`` and ``b`` are set by passing a NameTuple to the `prior_weights` argument with keys `q` and `b` specifying the priors for the two parameters.  
+When `b` is less than one, the index is more sensitive to changes in abundnace when the stock is rare, and when it is greater than one, it is more sensitive to changes in abundance when the stock is large. Passing `"HyperStability"` to the `index_model` argument will build a model using this index model. When using the Hyperstability model, additional keyword arguments are available to set a prior distribution over the exponent `b.` The prior mean for `b` is given by `prior_b,` and the prior weights for both ``q`` and ``b`` are set by passing a NameTuple to the `prior_sigma` argument with keys `q` and `b` specifying the priors for the two parameters. Otherwise the model defualts to uniformative priors. 
 
 ```julia
 using UniversalDiffEq
@@ -175,7 +175,7 @@ model = SurplusProduction(data,
                              index_model="HyperStability",
                              prior_q = 0.0,
                              prior_b = 1.0,
-                             prior_weight = (q = 0.0, b = 0.0))
+                             prior_sigma = (q = 0.1, b = 0.05))
 ```
 
 ## Uncertianty quantification 
