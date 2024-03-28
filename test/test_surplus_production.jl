@@ -24,3 +24,10 @@ for model in index_models
     model = SurplusProduction(data,index_model=model)
     model.loss_function(model.parameters) 
 end
+
+# test likelihoods
+index_models = ["EstimateVariance","FixedVariance"]
+for model in index_models
+    model = SurplusProduction(data,likelihood=model)
+    model.loss_function(model.parameters) 
+end
