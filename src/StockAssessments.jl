@@ -101,71 +101,68 @@ SurplusProduction(data;
 
 """
 function SurplusProduction(data;
+        # process model kwargs
         production_model = "DelayEmbedding",
-        harvest_model = "DiscreteAprox",
         regularizaiton_type = "L1",
-        regularizaiton_weight = 10.0^-4,
+        produciton_parameters = NamedTuple(),
+        # harvest model kwargs
+        harvest_model = "DiscreteAprox",
+        harvest_parameters = NamedTuple(), 
+        # Index model kwargs
         index_model="Linear",
+        index_priors = NamedTuple(),
+        # process model kwargs
         likelihood="FixedVariance",
-        process_weights = [0.5,1.0],
-        observation_weights = [0.25,0.1],
-        produciton_hyper_parameters = NamedTuple(),
-        theta = 1.0,
-        prior_q = 0.0,
-        prior_b = 1.0,
-        prior_weight = 0.0,
-        prior_sigma = "none",
         variance_priors = NamedTuple()
     )
+
     # process data
     times,data,dataframe,T = process_surplus_production_data(data)
 
     # update default hyper-paramters with user inputs 
-    new_produciton_hyper_parameters = ComponentArray(produciton_hyper_parameters)
-    produciton_hyper_parameters = ComponentArray((lags=5,hidden=10,cell_dim=10,seed=1,drop_prob=0.1,extrap_value=0.1,extrap_length=0.25))
-    produciton_hyper_parameters[keys(new_produciton_hyper_parameters)] .= new_produciton_hyper_parameters
+    ## proces model 
+    new_produciton_parameters = ComponentArray(produciton_parameters)
+    produciton_parameters = ComponentArray((lags=5,hidden=10,cell_dim=10,seed=1,drop_prob=0.1,extrap_value=0.1,extrap_length=0.25,regularizaiton_weight = 10.0^-4))
+    produciton_parameters[keys(new_produciton_parameters)] .= new_produciton_parameters
     
+    ## variance prior
+    new_variance_priors = ComponentArray(variance_priors)
+    variance_priors = ComponentArray((sigma_H=0.1, sigma_y = 0.1, sigma_B = 0.05, sigma_F = 0.2, sd_sigma_y=0.05,rH=0.25,sd_rH=0.025,rB=1.0,sd_rB=0.1,rF=5.0,sd_rF=0.25))
+    variance_priors[keys(new_variance_priors)] .= new_variance_priors
+
+    # harvest model 
+    new_harvest_parameters = ComponentArray(harvest_parameters)
+    harvest_parameters = ComponentArray((theta = 1.0))
+    harvest_parameters[keys(new_harvest_parameters)] .= new_harvest_parameters
+
+    # index model priors
+    new_index_priors = ComponentArray(index_priors)
+    index_priors = ComponentArray((q = 0.0, b = 1.0, sigma_q = 10.0, sigma_b = 10.0))
+    index_priors[keys(index_priors)] .= index_priors
+
     # production model 
-    predict,parameters,forecast_F,forecast_H,process_loss,loss_params = ProductionModel(production_model,likelihood,process_weights[1],process_weights[2],produciton_hyper_parameters)
+    predict,parameters,forecast_F,forecast_H,process_loss,loss_params = ProductionModel(production_model,likelihood,variance_priors.sigma_B,variance_priors.sigma_F,produciton_parameters)
     
     # observaiton model
-    link,observation_loss,loss_params_obs,link_params=DataModel(harvest_model,index_model,likelihood,observation_weights[1],observation_weights[2],theta)
-
-    if prior_sigma != "none"
-        if prior_weight != 0
-            @warn "Only use one of the kwargs prior_sigma or prior weight. Using vlaue of prior_sigma."
-        end
-        if typeof(prior_sigma) == Float64
-            prior_weight = 1/prior_sigma^2
-        else
-            prior_weight.q = 1/prior_sigma.q^2
-            prior_weight.b = 1/prior_sigma.b^2
-        end
-    end
+    link,observation_loss,loss_params_obs,link_params=DataModel(harvest_model,index_model,likelihood,variance_priors.sigma_H,variance_priors.sigma_y,harvest_parameters.theta)
     
     # production regularization
-    if (production_model == "DelayEmbeddingARD") && (typeof(regularizaiton_weight) == Float64)
+    regularizaiton_weight = produciton_parameters.regularizaiton_weight 
+    if (production_model == "DelayEmbeddingARD") 
         regularizaiton_weight = (L1 = regularizaiton_weight, L2 = regularizaiton_weight)
     end 
     process_regularization = Regularization(regularizaiton_type,production_model,regularizaiton_weight)
 
-    # observation model priors
-    observation_regularization = q_prior(prior_q,prior_weight)
-    if (index_model == "HyperStability") && (typeof(prior_weight) == Float64)
-        prior_weight = (q = prior_weight, b = prior_weight)
-    end 
-
+    # Index model priors 
+    observation_regularization = q_prior(index_priors.q,index_priors.sigma_q)
     if index_model == "HyperStability"
-        observation_regularization = q_and_b_prior(prior_q,prior_b,prior_weight)
+        observation_regularization = q_and_b_prior(index_priors.q,index_priors.b,index_priors.sigma_q,index_priors.sigma_b)
     end 
     
-    # variance prior
+    # variance priors 
     variance_prior = (observation,process) -> 0.0
     if likelihood=="EstimateVariance"
-        new_variance_priors = ComponentArray(variance_priors)
-        variance_priors = ComponentArray((var_y=0.05,sigma_y=0.05,rH=0.25,sigma_rH=0.025,rB=1.0,sigma_rB=0.1,rF=5.0,sigma_rF=0.25))
-        variance_priors[keys(new_variance_priors)] .= new_variance_priors
-        variance_prior = init_variance_prior(variance_priors.var_y, variance_priors.sigma_y, variance_priors.rH, variance_priors.sigma_rH, variance_priors.rB,variance_priors.sigma_rB, variance_priors.rF, variance_priors.sigma_rF)
+        variance_prior = init_variance_prior(variance_priors.sigma_y, variance_priors.sd_sigma_y, variance_priors.rH, variance_priors.sd_rH, variance_priors.rB,variance_priors.sd_rB, variance_priors.rF, variance_priors.sd_rF)
     end 
 
     # loss function 
@@ -175,8 +172,8 @@ function SurplusProduction(data;
     # parameters
     parameters = ComponentArray((uhat = zeros(size(data)),predict = parameters, process_loss = loss_params, link = link_params, observation_loss = loss_params_obs))
 
-    constructor = data -> SurplusProduction(data;production_model=production_model,harvest_model=harvest_model,regularizaiton_type=regularizaiton_type,regularizaiton_weight=regularizaiton_weight,index_model=index_model,likelihood=likelihood,process_weights=process_weights,observation_weights=observation_weights,produciton_hyper_parameters=produciton_hyper_parameters,prior_q=prior_q,prior_weight=prior_weight,variance_priors=variance_priors)
-   
+    constructor = data -> SurplusProduction(data;production_model=production_model,regularizaiton_type=regularizaiton_type,produciton_parameters=new_produciton_parameters,harvest_model=harvest_model,harvest_parameters=new_harvest_parameters,index_model=index_model,index_priors=new_index_priors,likeihood=likelihood,variance_priors=new_variance_priors)
+
     return SurplusProduction(times,dt_final,data,dataframe,[],parameters,predict,forecast_F,forecast_H,link,observation_loss, process_loss,loss_function,constructor)
 
 end 
