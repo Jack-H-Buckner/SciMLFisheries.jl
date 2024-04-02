@@ -172,21 +172,16 @@ function SurplusProduction(data;
     # parameters
     parameters = ComponentArray((uhat = zeros(size(data)),predict = parameters, process_loss = loss_params, link = link_params, observation_loss = loss_params_obs))
 
-   constructor = data ->  SurplusProduction(data;
-        # process model kwargs
-        production_model = production_model,
-        regularizaiton_type = regularizaiton_type,
-        produciton_parameters = new_produciton_parameters,
-        # harvest model kwargs
-        harvest_model = harvest_model,
-        harvest_parameters = new_harvest_parameters, 
-        # Index model kwargs
-        index_model=index_model,
-        index_priors = new_index_priors,
-        # process model kwargs
-        likelihood=likelihood,
-        variance_priors = new_variance_priors
-    )
+    function constructor(data;production_model = production_model,regularizaiton_type = regularizaiton_type,
+            produciton_parameters = new_produciton_parameters, harvest_model = harvest_model,harvest_parameters = new_harvest_parameters, 
+            index_model=index_model,index_priors = new_index_priors,likelihood=likelihood,variance_priors = new_variance_priors)
+        
+        model = SurplusProduction(data;production_model = production_model,regularizaiton_type = regularizaiton_type,
+            produciton_parameters = produciton_parameters,harvest_model = harvest_model,harvest_parameters = harvest_parameters, 
+            index_model=index_model,index_priors = index_priors,likelihood=likelihood,variance_priors = variance_priors)
+        
+        return model 
+    end
     return SurplusProduction(times,dt_final,data,dataframe,[],parameters,predict,forecast_F,forecast_H,link,observation_loss, process_loss,loss_function,constructor)
 
 end 
