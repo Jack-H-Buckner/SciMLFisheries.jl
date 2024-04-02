@@ -83,19 +83,19 @@ A number of key work arguments are used to modify the models behavior. Each of t
 
 ```julia
 SurplusProduction(data;
-        production_model = "DelayEmbedding", # options = ["FeedForward","LSTM","DelayEmbeddingARD","DelayEmbeddingDropOut","LSTMDropOut"]
-        harvest_model = "DiscreteAprox", # options = ["FeedForward"]
-        index_model = "Linear", # index_model = ["Nonlinear"]
-        regularizaiton_type = "L2", # options = ["L1"]
-        regularizaiton_weight = 10^-4, # options Real
-        loss = "FixedVariance", # options = ["EstimateVariance"]
-        process_weights = [0.5,1.0], # options:  Vector{Real}
-        observation_weights = [0.25,0.1], # options: Vector{Real}
-        produciton_hyper_parameters = NamedTuple(), # options: Naned tuple with keys (lags=Int,hidden=Int,cell_dim=Int,seed=Int,drop_prob=Real in [0,1],extrap_value=Real,extrap_length=Real)
-        prior_q = 0.0, # options: Real
-        prior_b = 0.0 # options: Real
-        prior_weight = 0.0 # options = Real
-        variance_priors = NamedTuple() # named tuple with keys (var_y=Real,sigma_y=Real,rH=Real,sigma_rH=Real,rB=Real,sigma_rB=Real,rF=Real,sigma_rF=Real)
+        # process model kwargs
+        production_model = "DelayEmbedding",
+        regularizaiton_type = "L2",
+        produciton_parameters = (lags=5,hidden=10,cell_dim=10,seed=1,drop_prob=0.1,extrap_value=0.1,extrap_length=0.25,regularizaiton_weight = 10.0^-4),
+        # harvest model kwargs
+        harvest_model = "DiscreteAprox",
+        harvest_parameters = (theta = 1.0)), 
+        # Index model kwargs
+        index_model="Linear",
+        index_priors = (q = 0.0, b = 1.0, sigma_q = 10.0, sigma_b = 10.0),
+        # process model kwargs
+        likelihood="FixedVariance",
+        variance_priors = (sigma_H=0.1, sigma_y = 0.1, sigma_B = 0.05, sigma_F = 0.2, sd_sigma_y=0.05,rH=0.25,sd_rH=0.025,rB=1.0,sd_rB=0.1,rF=5.0,sd_rF=0.25)
     )
 ```
 
@@ -103,7 +103,7 @@ SurplusProduction(data;
 function SurplusProduction(data;
         # process model kwargs
         production_model = "DelayEmbedding",
-        regularizaiton_type = "L1",
+        regularizaiton_type = "L2",
         produciton_parameters = NamedTuple(),
         # harvest model kwargs
         harvest_model = "DiscreteAprox",

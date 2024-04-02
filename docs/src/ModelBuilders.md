@@ -183,9 +183,9 @@ For models with estimated variance terms we allow gamma prior distributions to b
 
 ```math
 \sigma_y \sim gamma(\hat{\sigma}_y, sd(\sigma_y)) \\
-\frac{\sigma_H}{\sigma_y} \sim gamm(\hat{r_{H:y}}, sd(r_{H:y})) \\
-\frac{\sigma_B}{\sigma_y} \sim gamm(\hat{r_{B:y}}, sd(r_{B:y})) \\
-\frac{\sigma_F}{\sigma_y} \sim gamm(\hat{r_{F:y}}, sd(r_{F:y})) 
+\frac{\sigma_H}{\sigma_y} \sim gamma(\hat{r_{H:y}}, sd(r_{H:y})) \\
+\frac{\sigma_B}{\sigma_y} \sim gamma(\hat{r_{B:y}}, sd(r_{B:y})) \\
+\frac{\sigma_F}{\sigma_y} \sim gamma(\hat{r_{F:y}}, sd(r_{F:y})) 
 ```
 
 The parameters for the prior distributions are set using the `variance_priors` argument as illustrated below. 
