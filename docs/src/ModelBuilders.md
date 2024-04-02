@@ -196,3 +196,16 @@ model = SurplusProduction(data,
                          likelihood="EstimateVariance",
                          variance_priors = (sigma_y = 0.1, sd_sigma_y=0.05,rH=0.25,sd_rH=0.025,rB=1.0,sd_rB=0.1,rF=5.0,sd_rF=0.2))
 ```
+# Model fitting
+
+Currently SciMLFisheries has two algorithms to estimate the model paramters, `gradient_decent!` and `BFGS!`. the gradient decent function using the ADAM algorithm to fid the maximimum likeihood esitmate of the model parameters, while BFGS acciomplishes the same task with a quasi-Newton algorithm. In general the best results are achieved by first running `gradient_decent!` and then `BFGS!`. You can track the progress of both algorithms by setting the key word `verbose = true`, the number of iteratins and step size for gradent decent are adjusted with the key words `maxiter` and `step_size`.
+
+```julia
+gradient_decent!(UDE; step_size = 0.05, maxiter = 500, verbose = false)
+```
+
+The BFGS algorithm has a single tuning parameter `initial_step_norm` with a default value of 0.01.
+ 
+```julia
+BFGS!(UDE; verbose = true, initial_step_norm = 0.01)
+```
