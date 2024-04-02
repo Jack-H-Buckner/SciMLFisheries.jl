@@ -1,4 +1,4 @@
-function gradient_decent!(UDE; step_size = 0.05, maxiter = 500, verbos = false)
+function gradient_decent!(UDE; step_size = 0.05, maxiter = 500, verbose = false)
     
     # set optimization problem 
     target = (x,p) -> UDE.loss_function(x)
@@ -7,7 +7,7 @@ function gradient_decent!(UDE; step_size = 0.05, maxiter = 500, verbos = false)
     optprob = Optimization.OptimizationProblem(optf, UDE.parameters)
     
     # print value of loss function at each time step 
-    if verbos
+    if verbose
         callback = function (p, l; doplot = false)
           print(round(l,digits = 3), " ")
           return false
@@ -27,9 +27,9 @@ function gradient_decent!(UDE; step_size = 0.05, maxiter = 500, verbos = false)
     return nothing
 end
 
-function BFGS!(UDE; verbos = true, initial_step_norm = 0.01)
+function BFGS!(UDE; verbose = true, initial_step_norm = 0.01)
     
-    if verbos
+    if verbose
         callback = function (p, l; doplot = false)
           print(round(l,digits = 3), " ")
           return false
