@@ -138,7 +138,7 @@ function SurplusProduction(data;
     # index model priors
     new_index_priors = ComponentArray(index_priors)
     index_priors = ComponentArray((q = 0.0, b = 1.0, sigma_q = 10.0, sigma_b = 10.0))
-    index_priors[keys(index_priors)] .= index_priors
+    index_priors[keys(new_index_priors)] .= new_index_priors
 
     # production model 
     predict,parameters,forecast_F,forecast_H,process_loss,loss_params = ProductionModel(production_model,likelihood,variance_priors.sigma_B,variance_priors.sigma_F,produciton_parameters)
@@ -172,8 +172,21 @@ function SurplusProduction(data;
     # parameters
     parameters = ComponentArray((uhat = zeros(size(data)),predict = parameters, process_loss = loss_params, link = link_params, observation_loss = loss_params_obs))
 
-    constructor = data -> SurplusProduction(data;production_model=production_model,regularizaiton_type=regularizaiton_type,produciton_parameters=new_produciton_parameters,harvest_model=harvest_model,harvest_parameters=new_harvest_parameters,index_model=index_model,index_priors=new_index_priors,likeihood=likelihood,variance_priors=new_variance_priors)
-
+   constructor = data ->  SurplusProduction(data;
+        # process model kwargs
+        production_model = production_model,
+        regularizaiton_type = regularizaiton_type,
+        produciton_parameters = new_produciton_parameters,
+        # harvest model kwargs
+        harvest_model = harvest_model,
+        harvest_parameters = new_harvest_parameters, 
+        # Index model kwargs
+        index_model=index_model,
+        index_priors = new_index_priors,
+        # process model kwargs
+        likelihood=likelihood,
+        variance_priors = new_variance_priors
+    )
     return SurplusProduction(times,dt_final,data,dataframe,[],parameters,predict,forecast_F,forecast_H,link,observation_loss, process_loss,loss_function,constructor)
 
 end 

@@ -331,6 +331,11 @@ function crash_index(testing)
     return keep
 end 
 
+"""
+    plot_forecast(UDE,testing)
+
+Forecasts abundnace from the final point of the training data based on the harvest values in the the DataFrame `testing.` Plots the forecasts and the index values in `testing`.
+"""
 function plot_forecast(UDE,testing)
     
     keep = crash_index(testing)
@@ -387,7 +392,7 @@ function forecast_MSE(UDE,testing;remove_crash = true, weight_H = 0.0)
     return MSE, keep
 end 
 
-function leave_future_out_cv(model; forecast_length = 10,  forecast_number = 10, spacing = 1, step_size = 0.05, maxiter = 500, step_size2 = 0.01, maxiter2 = 500, verbos = false)
+function leave_future_out_cv(model; forecast_length = 10,  forecast_number = 10, spacing = 1, step_size = 0.05, maxiter = 500, step_size2 = 0.01, maxiter2 = 500, verbose = false)
     
     if model.X == []
         # get final time
@@ -405,11 +410,11 @@ function leave_future_out_cv(model; forecast_length = 10,  forecast_number = 10,
 
             model_i = model.constructor(training_data[i])
 
-            gradient_decent!(model_i, step_size = step_size, maxiter = maxiter,verbos = verbos) 
+            gradient_decent!(model_i, step_size = step_size, maxiter = maxiter,verbose = verbose) 
             try 
-                BFSG!(model_i,verbos = verbos)
+                BFSG!(model_i,verbose = verbose)
             catch
-                gradient_decent!(model_i, step_size = step_size2, maxiter = maxiter2,verbos = verbos) 
+                gradient_decent!(model_i, step_size = step_size2, maxiter = maxiter2,verbose = verbose) 
             end 
             
             # forecast
