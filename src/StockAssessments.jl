@@ -85,8 +85,8 @@ A number of key work arguments are used to modify the models behavior. Each of t
 SurplusProduction(data;
         # process model kwargs
         production_model = "DelayEmbedding",
-        regularizaiton_type = "L2",
-        produciton_parameters = (lags=5,hidden=10,cell_dim=10,seed=1,drop_prob=0.1,extrap_value=0.1,extrap_length=0.25,regularizaiton_weight = 10.0^-4),
+        regularization_type = "L2",
+        produciton_parameters = (lags=5,hidden=10,cell_dim=10,seed=1,drop_prob=0.1,extrap_value=0.1,extrap_length=0.25,regularization_weight = 10.0^-4),
         # harvest model kwargs
         harvest_model = "DiscreteAprox",
         harvest_parameters = (theta = 1.0)), 
@@ -103,7 +103,7 @@ SurplusProduction(data;
 function SurplusProduction(data;
         # process model kwargs
         production_model = "DelayEmbedding",
-        regularizaiton_type = "L2",
+        regularization_type = "L2",
         produciton_parameters = NamedTuple(),
         # harvest model kwargs
         harvest_model = "DiscreteAprox",
@@ -117,12 +117,13 @@ function SurplusProduction(data;
     )
 
     # process data
+    df = deepcopy(data)
     times,data,dataframe,T = process_surplus_production_data(data)
 
     # update default hyper-paramters with user inputs 
     ## proces model 
     new_produciton_parameters = ComponentArray(produciton_parameters)
-    produciton_parameters = ComponentArray((lags=5,hidden=10,cell_dim=10,seed=1,drop_prob=0.1,extrap_value=0.1,extrap_length=0.25,regularizaiton_weight = 10.0^-4))
+    produciton_parameters = ComponentArray((lags=5,hidden=10,cell_dim=10,seed=1,drop_prob=0.1,extrap_value=0.1,extrap_length=0.25,regularization_weight = 10.0^-4))
     produciton_parameters[keys(new_produciton_parameters)] .= new_produciton_parameters
     
     ## variance prior
@@ -147,11 +148,11 @@ function SurplusProduction(data;
     link,observation_loss,loss_params_obs,link_params=DataModel(harvest_model,index_model,likelihood,variance_priors.sigma_H,variance_priors.sigma_y,harvest_parameters.theta)
     
     # production regularization
-    regularizaiton_weight = produciton_parameters.regularizaiton_weight 
+    regularization_weight = produciton_parameters.regularization_weight 
     if (production_model == "DelayEmbeddingARD") 
-        regularizaiton_weight = (L1 = regularizaiton_weight, L2 = regularizaiton_weight)
+        regularization_weight = (L1 = regularization_weight, L2 = regularization_weight)
     end 
-    process_regularization = Regularization(regularizaiton_type,production_model,regularizaiton_weight)
+    process_regularization = Regularization(regularization_type,production_model,regularization_weight)
 
     # Index model priors 
     observation_regularization = q_prior(index_priors.q,index_priors.sigma_q)
@@ -172,16 +173,16 @@ function SurplusProduction(data;
     # parameters
     parameters = ComponentArray((uhat = zeros(size(data)),predict = parameters, process_loss = loss_params, link = link_params, observation_loss = loss_params_obs))
 
-    function constructor(data;production_model = production_model,regularizaiton_type = regularizaiton_type,
+    function constructor(data;production_model = production_model,regularization_type = regularization_type,
             produciton_parameters = new_produciton_parameters, harvest_model = harvest_model,harvest_parameters = new_harvest_parameters, 
             index_model=index_model,index_priors = new_index_priors,likelihood=likelihood,variance_priors = new_variance_priors)
         
-        model = SurplusProduction(data;production_model = production_model,regularizaiton_type = regularizaiton_type,
+        model = SurplusProduction(data;production_model = production_model,regularization_type = regularization_type,
             produciton_parameters = produciton_parameters,harvest_model = harvest_model,harvest_parameters = harvest_parameters, 
             index_model=index_model,index_priors = index_priors,likelihood=likelihood,variance_priors = variance_priors)
         
         return model 
     end
-    return SurplusProduction(times,dt_final,data,dataframe,[],parameters,predict,forecast_F,forecast_H,link,observation_loss, process_loss,loss_function,constructor)
+    return SurplusProduction(times,dt_final,data,df,[],parameters,predict,forecast_F,forecast_H,link,observation_loss, process_loss,loss_function,constructor)
 
 end 
