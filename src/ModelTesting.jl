@@ -338,7 +338,7 @@ function plot_forecast(UDE,testing)
     #testing = testing[keep,:]
     
     p1,p2=plot_forecast(UDE,testing.t,testing.H)
-    plot!(p1,testing.t,exp.(testing.y))
+    plot!(p1,testing.t,testing.y)
     plot!(p2,testing.t,testing.H)
     plot(p1,p2)
     
