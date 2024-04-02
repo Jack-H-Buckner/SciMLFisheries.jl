@@ -421,7 +421,7 @@ function leave_future_out_cv(model; forecast_length = 10,  forecast_number = 10,
             predicted_data,F = solve_fishing_mortality(model_i, testing_data[i].t, testing_data[i].H)
 
             SE = copy(predicted_data)
-            SE[:,2] .= (exp.(predicted_data.y) .- exp.(testing_data[i].y)).^2
+            SE[:,2] .= (exp.(predicted_data.y) .- testing_data[i].y).^2
             SE[:,3] .= (predicted_data.H .- testing_data[i].H).^2
             
             push!(standard_errors[Threads.threadid()], SE)
