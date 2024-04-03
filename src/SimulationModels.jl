@@ -110,7 +110,7 @@ function simulation(derivs,noise,tspan,u0,tsteps,p,sigma_x,sigma_H)
     B0 = index[end]
     index = 4.0 * index ./ B0
     y = log.(index) .+ rand(Distributions.Normal(0.0,sigma_x), length(ode_data[1,2:end]))
-        
+    y = exp.(y)
     H = 4.0 * (ode_data[2,2:end] .- ode_data[2,1:(end-1)])./B0 .+ rand(Distributions.Normal(0.0,sigma_H), length(ode_data[2,2:end]))
     
     X = ode_data[3:end,1:(end-1)]
@@ -141,7 +141,8 @@ function simulate_test_data(derivs,noise,u0,p,testing_tspan,testing_tsteps,Hvals
         index[index .<= 0.0] .= 0.001
         index = 4.0 *index ./ B0
         y = log.(index) .+ rand(Distributions.Normal(0.0,sigma_x), length(ode_test_data[1,2:end]))
-            
+        y = exp.(y)
+        
         H = 4.0*(ode_test_data[2,2:end] .- ode_test_data[2,1:(end-1)])/B0
             
         X = ode_test_data[3:end,1:(end-1)]
