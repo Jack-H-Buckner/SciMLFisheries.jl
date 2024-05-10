@@ -1,5 +1,5 @@
 
-function extrapolation!(r,u,umax,umin,extrap_length,extrap_value)
+function extrapolation(r,u,umax,umin,extrap_length,extrap_value)
     if u > umax
         w = exp(-0.5/extrap_length^2*((u-umax)/(umax-umin))^2)
         r = w*r -extrap_value*(1-w)
@@ -14,7 +14,7 @@ function init_forecast(predict,extrap_value,extrap_length)
     
     function forecast_F(u,F, aux,dt,parameters,umax,umin)
         upred,r,aux = predict([u,F],aux,dt,parameters) # calcualte growth rate with predict function 
-        extrapolation!(r,u,umax,umin,extrap_length,extrap_value) # modify growth rate with extrapolation rule
+        r = extrapolation(r,u,umax,umin,extrap_length,extrap_value) # modify growth rate with extrapolation rule
         # calcualte new biomass 
         x = u .+ dt*r - dt*F
         return x, r, aux
@@ -23,7 +23,7 @@ function init_forecast(predict,extrap_value,extrap_length)
     function forecast_H(u,H, aux,dt,parameters,umax,umin)
         Faprox = H/exp(u) # calcualte F from harvest and biomass 
         upred,r,aux = predict([u,Faprox],aux,dt,parameters) # calcualte growth rate with predict function 
-        extrapolation!(r,u,umax,umin,extrap_length,extrap_value) # modify growth rate with extrapolation rule
+        r = extrapolation(r,u,umax,umin,extrap_length,extrap_value) # modify growth rate with extrapolation rule
         # calcualte new biomass 
         x = u .+ dt*r - dt*Faprox
         return x, r, aux
