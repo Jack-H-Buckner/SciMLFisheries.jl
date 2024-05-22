@@ -155,6 +155,39 @@ function DelayEmbedding(;lags=5,hidden = 10, seed = 1, extrap_value = 0.1, extra
     
 end 
 
+
+function BiomassDelayEmbedding(;lags=5,hidden = 10, seed = 1, extrap_value = 0.1, extrap_length=0.25)
+    dims_in =  round(Int,1+lags)
+    hidden =  round(Int,hidden)
+    dims_out =  1
+    NN = Lux.Chain(Lux.Dense(dims_in,hidden,tanh), Lux.Dense(hidden,dims_out))
+ 
+    Random.seed!(round(Int,seed)); rng = Random.default_rng() 
+    NN_parameters, NN_states = Lux.setup(rng,NN) 
+    parameters = (NN = NN_parameters, aux0 = zeros(round(Int,lags)))
+        
+    function predict(u,dt,parameters) 
+        r = NN(vcat(u[1:1],parameters.aux0),parameters.NN,NN_states)[1][1]
+        x = u[1] + dt*r - dt*u[2]
+        return [x,u[2]], r, (parameters.aux0,u[1],u[2])
+    end 
+    
+    function predict(u,aux,dt,parameters) 
+        lags,ut1=aux
+        lags = vcat([ut1],lags[1:(end-1)])
+        r = NN(vcat(u[1:1],lags),parameters.NN,NN_states)[1][1]
+        x = u[1] .+ dt*r - dt*u[2]
+        return [x,u[2]],r, (lags,u[1])
+    end 
+    
+    forecast_F, forecast_H = init_forecast(predict,extrap_value,extrap_length)
+    
+    return predict, parameters, forecast_F, forecast_H
+    
+end 
+
+
+
 function DelayEmbeddingARD(;lags=5,hidden = 10, seed = 1, extrap_value = 0.1, extrap_length=0.25)
     dims_in =  round(Int,1+2*lags)
     hidden =  round(Int,hidden)
@@ -229,6 +262,8 @@ function ProductionModel(model,loss,sigma_B,sigma_F,pars)
         predict,parameters,forecast_F,forecast_H = LSTMDropOut(;cell_dim=pars.cell_dim,seed=pars.seed,extrap_value=pars.extrap_value,extrap_length=pars.extrap_length,drop_prob=pars.drop_prob)
     elseif model == "DelayEmbedding"
         predict,parameters,forecast_F,forecast_H = DelayEmbedding(;lags=pars.lags,hidden=pars.hidden,seed=pars.seed,extrap_value=pars.extrap_value,extrap_length=pars.extrap_length)
+    elseif model == "BiomassDelayEmbedding"
+        predict,parameters,forecast_F,forecast_H = BiomassDelayEmbedding(;lags=pars.lags,hidden=pars.hidden,seed=pars.seed,extrap_value=pars.extrap_value,extrap_length=pars.extrap_length)
     elseif model == "DelayEmbeddingARD"
         predict,parameters,forecast_F,forecast_H = DelayEmbeddingARD(;lags=pars.lags,hidden=pars.hidden,seed=pars.seed,extrap_value=pars.extrap_value,extrap_length=pars.extrap_length)
     elseif model == "DelayEmbeddingDropOut"

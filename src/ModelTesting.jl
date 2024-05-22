@@ -167,14 +167,18 @@ function forecast_F(UDE,T::Int,F::Real)
 
 end 
 
-function plot_forecast_F(UDE, T,F)
+function plot_forecast_F(UDE,T,F)
     df = forecast_F(UDE,T,F)
 
-    plt = plot(df.t,exp.(df.y),color = "grey", linestyle=:dash, label = "forecast",
+    plt1 = plot(df.t,exp.(df.y),color = "grey", linestyle=:dash, label = "forecast",
                     xlabel = "Time", ylabel = string(L"log Biomass"))
     plot!(UDE.times,exp.(UDE.data[1,:]),c=1, label = "data")
 
-    return plt
+    plt2 = plot(df.t,df.H,color = "grey", linestyle=:dash, label = "forecast",
+                    xlabel = "Time", ylabel = string(L"log Biomass"))
+    plot!(UDE.times,UDE.data[2,:],c=1, label = "data")
+
+    return plt1, plt2
 end 
 
 function forecast_H(UDE,times::AbstractVector{},H::AbstractVector{})
