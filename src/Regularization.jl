@@ -112,9 +112,9 @@ end
 function Regularization(loss,model,weight)
  
     loss_function = params -> 0
-    if (loss == "L1") & (model in ["FeedForward","DelayEmbedding"])
+    if (loss == "L1") & (model in ["FeedForward","DelayEmbedding", "BiomassDelayEmbedding"])
         loss_function = L1(weight)
-    elseif (loss == "L2") & (model in ["FeedForward","DelayEmbedding"])
+    elseif (loss == "L2") & (model in ["FeedForward","DelayEmbedding","BiomassDelayEmbedding"])
         loss_function = L2(weight)
     elseif (loss == "L1") & (model in ["DelayEmbeddingDropOut"])
         loss_function = L1_drop(weight)
@@ -133,7 +133,7 @@ function Regularization(loss,model,weight)
     elseif loss == "none"
         return loss_function 
     else
-        print("Your choice of harvest model does not match avaiable options. No regulairzation will be used.")
+        print("Your choice of production model does not match avaiable options. No regulairzation will be used.")
     end 
     
     return loss_function
