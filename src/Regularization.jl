@@ -130,9 +130,9 @@ function Regularization(loss,model,weight)
         loss_function = L2_LSTM_drop(weight)
     elseif model == "DelayEmbeddingARD"
         loss_function = ARD(weight)
-    elseif model == "theta_logistic"
+    elseif model == "ThetaLogistic"
         return loss_function 
-    elseif model == "logistic"
+    elseif model == "Logistic"
         return loss_function 
     elseif loss == "none"
         return loss_function 

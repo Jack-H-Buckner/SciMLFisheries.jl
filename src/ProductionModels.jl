@@ -42,14 +42,24 @@ function logistic(;n= 2.0, extrap_value = 0.1,extrap_length=0.25)
     end
 
     function predict(u, dt,parameters) 
-        r = parameters.r/(n - 1)* (1 - (exp(u[1])/parameters.K)^(n- 1))
-        x = u[1] .+ dt*r .- dt*u[2]
+     
+        x = u[1]; r = 0
+        for i in 1:5
+            r = parameters.r/(n - 1)* (1 - (exp(x)/parameters.K)^(n- 1))
+            x = x + dt*r/5 - dt*u[2]/5
+        end 
+
         return [x,u[2]], r,  0
     end 
 
     function predict(u,aux, dt,parameters) 
-        r = parameters.r/(n - 1)* (1 - (exp(u[1])/parameters.K)^(n - 1))
-        x = u[1] .+ dt*r .- dt*u[2]
+
+        x = u[1]; r = 0
+        for i in 1:5
+            r = parameters.r/(n - 1)* (1 - (exp(x)/parameters.K)^(n- 1))
+            x = x + dt*r/5 - dt*u[2]/5
+        end 
+
         return [x,u[2]], r,  0
     end 
     
@@ -68,9 +78,11 @@ function theta_logistic(;n= 2,extrap_value = 0.1,extrap_length=0.25)
         if n == 1.0
             n += 10^-6
         end
-
-        r = parameters.r/(parameters.n - 1)* (1 - (exp(u[1])/parameters.K)^(parameters.n - 1))
-        x = u[1] .+ dt*r .- dt*u[2]
+        x = u[1]; r = 0
+        for i in 1:5
+            r = parameters.r/(parameters.n - 1)* (1 - (exp(x)/parameters.K)^(parameters.n - 1))
+            x = x + dt*r/5 - dt*u[2]/5
+        end 
         return [x,u[2]], r,  0
     end 
 
@@ -79,9 +91,12 @@ function theta_logistic(;n= 2,extrap_value = 0.1,extrap_length=0.25)
         if n == 1.0
             n += 10^-6
         end
-        
-        r = parameters.r/(parameters.n - 1)* (1 - (exp(u[1])/parameters.K)^(parameters.n - 1))
-        x = u[1] .+ dt*r .- dt*u[2]
+
+        x = u[1]; r = 0
+        for i in 1:5
+            r = parameters.r/(parameters.n - 1)* (1 - (exp(x)/parameters.K)^(parameters.n - 1))
+            x = x + dt*r/5 - dt*u[2]/5
+        end 
         return [x,u[2]], r,  0
     end 
     
@@ -326,9 +341,9 @@ function ProductionModel(model,loss,sigma_B,sigma_F,pars)
         predict,parameters,forecast_F,forecast_H = DelayEmbeddingARD(;lags=pars.lags,hidden=pars.hidden,seed=pars.seed,extrap_value=pars.extrap_value,extrap_length=pars.extrap_length)
     elseif model == "DelayEmbeddingDropOut"
         predict,parameters,forecast_F,forecast_H = DelayEmbeddingDropOut(;lags=pars.lags,hidden=pars.hidden,seed=pars.seed,extrap_value=pars.extrap_value,extrap_length=pars.extrap_length,drop_prob=pars.drop_prob)
-    elseif model == "theta_logistic"
+    elseif model == "ThetaLogistic"
         predict,parameters,forecast_F,forecast_H = theta_logistic(;n = pars.n,extrap_value=pars.extrap_value,extrap_length=pars.extrap_length)
-    elseif model == "logistic"
+    elseif model == "Logistic"
         predict,parameters,forecast_F,forecast_H = logistic(;n = pars.n,extrap_value=pars.extrap_value,extrap_length=pars.extrap_length)
     else
         print("Your choice of production model does not match avaiable options")

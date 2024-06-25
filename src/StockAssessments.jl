@@ -109,7 +109,7 @@ function SurplusProduction(data;
         harvest_model = "DiscreteAprox",
         harvest_parameters = NamedTuple(), 
         # Index model kwargs
-        index_model="Linear",
+        index_model="Identity",
         index_priors = NamedTuple(),
         # process model kwargs
         likelihood="FixedVariance",
@@ -167,7 +167,7 @@ function SurplusProduction(data;
     end 
 
     # loss function 
-    dt_final = times[end-1]-times[end]
+    dt_final = times[end] - times[end-1]
     loss_function = init_loss(times,dt_final,data,predict,process_loss,link,observation_loss,process_regularization,observation_regularization,variance_prior)
 
     # parameters
