@@ -30,7 +30,7 @@ end
 
 
 
-function DataModel(harvest,index,loss,sigma_harvest,sigma_index,theta)
+function DataModel(harvest,index,loss,sigma_harvest,sigma_index,theta,sd,mu)
     
     # Harvest link function 
     harvest_model = x -> 0
@@ -43,7 +43,6 @@ function DataModel(harvest,index,loss,sigma_harvest,sigma_index,theta)
         print("Your choice of harvest model does not match avaiable options")
         throw(error())   
     end
-    
     
     # Index link function 
     index_model = x -> 0;link_params = NamedTuple()

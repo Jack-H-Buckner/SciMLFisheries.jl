@@ -119,7 +119,8 @@ function SurplusProduction(data;
     # process data
     df = deepcopy(data)
     times,data,dataframe,T = process_surplus_production_data(data)
-
+    sd = std(log.(dataframe.y)); mu = mean(log.(dataframe.y))
+    
     # update default hyper-paramters with user inputs 
     ## proces model 
     new_produciton_parameters = ComponentArray(produciton_parameters)
@@ -142,10 +143,10 @@ function SurplusProduction(data;
     index_priors[keys(new_index_priors)] .= new_index_priors
 
     # production model 
-    predict,parameters,forecast_F,forecast_H,process_loss,loss_params = ProductionModel(production_model,likelihood,variance_priors.sigma_B,variance_priors.sigma_F,produciton_parameters)
+    predict,parameters,forecast_F,forecast_H,process_loss,loss_params = ProductionModel(production_model,likelihood,variance_priors.sigma_B,variance_priors.sigma_F,produciton_parameters,mu,sd)
     
     # observaiton model
-    link,observation_loss,loss_params_obs,link_params=DataModel(harvest_model,index_model,likelihood,variance_priors.sigma_H,variance_priors.sigma_y,harvest_parameters.theta)
+    link,observation_loss,loss_params_obs,link_params=DataModel(harvest_model,index_model,likelihood,variance_priors.sigma_H,variance_priors.sigma_y,harvest_parameters.theta,sd,mu)
     
     # production regularization
     regularization_weight = produciton_parameters.regularization_weight 
