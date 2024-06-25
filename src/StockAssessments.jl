@@ -123,7 +123,7 @@ function SurplusProduction(data;
     # update default hyper-paramters with user inputs 
     ## proces model 
     new_produciton_parameters = ComponentArray(produciton_parameters)
-    produciton_parameters = ComponentArray((lags=5,hidden=10,cell_dim=10,seed=1,drop_prob=0.1,extrap_value=0.1,extrap_length=0.25,regularization_weight = 10.0^-4))
+    produciton_parameters = ComponentArray((n = 2.0, lags=5,hidden=10,cell_dim=10,seed=1,drop_prob=0.1,extrap_value=0.1,extrap_length=0.25,regularization_weight = 10.0^-4))
     produciton_parameters[keys(new_produciton_parameters)] .= new_produciton_parameters
     
     ## variance prior
