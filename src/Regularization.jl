@@ -1,15 +1,15 @@
 
-function L2(weight)
+function L2(weight  )
     
-    loss = parameters -> weight * (sum(parameters.NN.layer_1.weight.^2) + sum(parameters.NN.layer_2.weight.^2))
+    loss = (parameters  ) -> weight * (sum(parameters.NN.layer_1.weight.^2) + sum(parameters.NN.layer_2.weight.^2))
     
     return loss
     
 end 
 
-function L1(weight)
+function L1(weight  )
     
-    loss = parameters -> weight * (sum(abs.(parameters.NN.layer_1.weight))+ sum(abs.(parameters.NN.layer_2.weight)))
+    loss = (parameters  ) -> weight * (sum(abs.(parameters.NN.layer_1.weight))+ sum(abs.(parameters.NN.layer_2.weight)))
     
     return loss
     
@@ -17,7 +17,7 @@ end
 
 function L2_drop(weight)
     
-    loss = parameters -> weight * (sum(parameters.NN.layer_1.weight.^2) + sum(parameters.NN.layer_3.weight.^2))
+    loss = (parameters  ) -> weight * (sum(parameters.NN.layer_1.weight.^2) + sum(parameters.NN.layer_3.weight.^2))
     
     return loss
     
@@ -25,7 +25,7 @@ end
 
 function L1_drop(weight)
     
-    loss = parameters -> weight * (sum(abs.(parameters.NN.layer_1.weight))+ sum(abs.(parameters.NN.layer_3.weight)))
+    loss = (parameters  ) -> weight * (sum(abs.(parameters.NN.layer_1.weight))+ sum(abs.(parameters.NN.layer_3.weight)))
     
     return loss
     
@@ -33,7 +33,7 @@ end
 
 function L1_LSTM(weight)
 
-    function loss(parameters)
+    function loss(parameters  )
         L = sum(abs.(parameters.Dense.weight))
             
         L += sum(abs.(parameters.LSTM.weight_i))
@@ -50,7 +50,7 @@ end
 
 function L2_LSTM(weight)
     
-    function loss(parameters)
+    function loss(parameters  )
         L = sum((parameters.Dense.weight).^2)
             
         L += sum((parameters.LSTM.weight_i).^2)
@@ -67,7 +67,7 @@ end
 
 function L2_LSTM_drop(weight)
 
-    function loss(parameters)
+    function loss(parameters  )
         L = sum((parameters.Dense.layer_1.weight).^2)
         
         L += sum((parameters.Dense.layer_3.weight).^2)
@@ -86,7 +86,7 @@ end
 
 function L1_LSTM_drop(weight)
 
-    function loss(parameters)
+    function loss(parameters  )
         L = sum(abs.(parameters.Dense.layer_1.weight))
         
         L += sum(abs.(parameters.Dense.layer_3.weight))
@@ -103,11 +103,22 @@ function L1_LSTM_drop(weight)
 end 
 
 function ARD(weight)
-    function loss(parameters)
+    function loss(parameters  )
         L = weight.L1*sum(abs.(parameters.ARD))
         L += weight.L2*(sum(parameters.NN.layer_1.weight.^2) + sum(parameters.NN.layer_2.weight.^2))
     end 
 end  
+
+
+function input_scaling(weight)
+    function loss(parameters)
+        L = sum(parameters.scale.^2 / weight.proc_sigma^2 )
+        L += weight.L2*(sum(parameters.NN.layer_1.weight.^2) + sum(parameters.NN.layer_2.weight.^2))
+    end 
+end  
+
+
+
 
 function Regularization(loss,model,weight)
  
@@ -128,12 +139,14 @@ function Regularization(loss,model,weight)
         loss_function = L1_LSTM_drop(weight)
     elseif (loss == "L2") & (model in ["LSTMDropOut"])
         loss_function = L2_LSTM_drop(weight)
-    elseif model == "DelayEmbeddingARD"
+    elseif model in ["DelayEmbeddingARD","LogisticDelayEmbedding"]
         loss_function = ARD(weight)
     elseif model == "ThetaLogistic"
         return loss_function 
     elseif model == "Logistic"
         return loss_function 
+    elseif model in ["DelayEmbeddingInputScaling", "LogisticDelayEmbeddingInputScaling"]
+        loss_function = input_scaling(weight)
     elseif loss == "none"
         return loss_function 
     else

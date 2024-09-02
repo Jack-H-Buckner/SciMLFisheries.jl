@@ -5,7 +5,7 @@ include("Regularization.jl")
 include("Priors.jl")
 include("Likelihoods.jl")
 
-function init_loss(times,dt_final,data,predict,process_loss,link,observation_loss,process_regularization,observation_regularization,variance_prior)
+function init_loss(times,dt_final,data,predict,process_loss,link,observation_loss,process_regularization,process_prior,observation_regularization,variance_prior)
     
     function loss_function(parameters)
         
@@ -40,6 +40,7 @@ function init_loss(times,dt_final,data,predict,process_loss,link,observation_los
         
         # regularization
         L_reg = process_regularization(parameters.predict)
+        L_reg += process_prior(parameters.predict)
         L_reg += observation_regularization(parameters.link)
         L_reg += variance_prior(parameters.observation_loss, parameters.process_loss)
 
@@ -119,12 +120,12 @@ function SurplusProduction(data;
     # process data
     df = deepcopy(data)
     times,data,dataframe,T = process_surplus_production_data(data)
-    sd = std(log.(dataframe.y)); mu = mean(log.(dataframe.y))
+    sd = std(dataframe.y); mu = mean(dataframe.y)
     
     # update default hyper-paramters with user inputs 
     ## proces model 
     new_produciton_parameters = ComponentArray(produciton_parameters)
-    produciton_parameters = ComponentArray((n = 2.0, lags=5,hidden=10,cell_dim=10,seed=1,drop_prob=0.1,extrap_value=0.1,extrap_length=0.25,regularization_weight = 10.0^-4))
+    produciton_parameters = ComponentArray((n = 2.0, lags=5,hidden=10,cell_dim=10,seed=1,drop_prob=0.1,extrap_value=0.1,extrap_length=0.25,psi = 3.14159/sqrt(2), regularization_weight = 10.0^-4,prior_K = 3.0, sigma_K = 1.0, prior_r = 1.0, sigma_r = 0.1))
     produciton_parameters[keys(new_produciton_parameters)] .= new_produciton_parameters
     
     ## variance prior
@@ -143,18 +144,31 @@ function SurplusProduction(data;
     index_priors[keys(new_index_priors)] .= new_index_priors
 
     # production model 
-    predict,parameters,forecast_F,forecast_H,process_loss,loss_params = ProductionModel(production_model,likelihood,variance_priors.sigma_B,variance_priors.sigma_F,produciton_parameters,mu,sd)
+    predict,parameters,forecast_F,forecast_H,process_loss,loss_params = ProductionModel(production_model,data,likelihood,variance_priors.sigma_B,variance_priors.sigma_F,produciton_parameters,mu,sd)
     
     # observaiton model
     link,observation_loss,loss_params_obs,link_params=DataModel(harvest_model,index_model,likelihood,variance_priors.sigma_H,variance_priors.sigma_y,harvest_parameters.theta,sd,mu)
     
     # production regularization
     regularization_weight = produciton_parameters.regularization_weight 
-    if (production_model == "DelayEmbeddingARD") 
+    if (production_model in ["DelayEmbeddingARD", "LogisticDelayEmbedding"]) 
         regularization_weight = (L1 = regularization_weight, L2 = regularization_weight)
-    end 
+    elseif production_model in ["DelayEmbeddingInputScaling", "LogisticDelayEmbeddingInputScaling"]
+        regularization_weight = (L2 = regularization_weight, proc_sigma =variance_priors.sigma_B)
+    end
+
     process_regularization = Regularization(regularization_type,production_model,regularization_weight)
 
+    # process model priors 
+
+    process_prior = p -> 0
+    if production_model == "LogisticDelayEmbeddingInputScaling"
+        function process_prior(p)
+            L = sum((p.K - produciton_parameters.prior_K)^2)/produciton_parameters.sigma_K^2
+            L += sum((p.r - produciton_parameters.prior_r)^2)/produciton_parameters.sigma_r^2
+            return L
+        end
+    end
     # Index model priors 
     observation_regularization = q_prior(index_priors.q,index_priors.sigma_q)
     if index_model == "HyperStability"
@@ -169,7 +183,7 @@ function SurplusProduction(data;
 
     # loss function 
     dt_final = times[end] - times[end-1]
-    loss_function = init_loss(times,dt_final,data,predict,process_loss,link,observation_loss,process_regularization,observation_regularization,variance_prior)
+    loss_function = init_loss(times,dt_final,data,predict,process_loss,link,observation_loss,process_regularization,process_prior,observation_regularization,variance_prior)
 
     # parameters
     parameters = ComponentArray((uhat = zeros(size(data)),predict = parameters, process_loss = loss_params, link = link_params, observation_loss = loss_params_obs))
