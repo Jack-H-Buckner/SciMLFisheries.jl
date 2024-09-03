@@ -1,7 +1,7 @@
 
 using Optimization, OptimizationOptimisers, OptimizationOptimJL, ComponentArrays, Zygote, LinearAlgebra, DataFrames
 
-include("GausianProcess.jl")
+include("GaussianProcesses.jl")
 
 soft_plus(x) = x/(1-exp(-x))
 function gaussian_process(data, E, psi, r0, K0)

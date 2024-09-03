@@ -1,6 +1,6 @@
 module SciMLFisheries
 
-using Optimization, OptimizationOptimisers, OptimizationOptimJL, ComponentArrays, Zygote, Plots, LaTeXStrings, DataFrames, Lux, Random, Statistics, Distributions, DifferentialEquations, LinearAlgebra
+using Optimization, OptimizationOptimisers, OptimizationOptimJL, ComponentArrays, Zygote, Plots, LaTeXStrings, DataFrames, Lux, Random, Statistics, Distributions, OrdinaryDiffEq, LinearAlgebra
 
 include("helpers.jl")
 include("Optimizers.jl")
