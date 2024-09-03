@@ -27,6 +27,7 @@ Lux = "<0.5.48"
 Optimization = "≥v3.19.3"
 OptimizationOptimJL = "≥v0.1.14"
 OptimizationOptimisers = "≥v0.1.6"
+OrdinaryDiffEq = "≥v6.80.1"
 Plots = "≥v1.40.4"
 Zygote = "≥v0.6.70"
 
