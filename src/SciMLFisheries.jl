@@ -8,7 +8,8 @@ include("StockAssessments.jl")
 include("ModelTesting.jl")
 include("SimulationModels.jl")
 include("GPProductionModels.jl")
+include("logisticProductionModel.jl")
 
-export SurplusProduction, gradient_decent!, BFGS!, plot_state_estiamtes, plot_predictions, plot_forecast, leave_future_out_cv, spEDM, forecast, surplus_production, mapping, fishing_mortality
+export SurplusProduction, gradient_decent!, BFGS!, plot_state_estiamtes, plot_predictions, plot_forecast, leave_future_out_cv, spEDM, spLogistic, forecast, surplus_production, mapping, fishing_mortality
 
 end # module add

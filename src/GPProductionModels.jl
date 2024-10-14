@@ -188,6 +188,7 @@ mutable struct spEDM
 end
 
 
+
 function spEDM(data, model, E, time_column_name, harvest_column_name, index_column_name;
                                     ratio = 2.0, theta = 1.0, psi = 3.14159 / 2, k = 2, phi = 0.0025,
                                     mu_log_q = 0.0,sigma_log_q = 100.0,

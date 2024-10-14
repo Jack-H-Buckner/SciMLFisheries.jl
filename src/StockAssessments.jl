@@ -49,6 +49,53 @@ function init_loss(times,dt_final,data,predict,process_loss,link,observation_los
     
 end 
 
+
+
+function init_loss_one_variances(times, data, predict, ratio, GP, k, phi, mu_log_q, sigma_log_q)
+    
+    function loss_function(parameters,x)
+        
+        # initialize process model 
+        ut = parameters.uhat[:,1]
+        dt = times[2] - times[1]
+        uhat,sigma_2, r, aux = predict(ut,dt,parameters) 
+  
+        # calcualte loss for first observation 
+        sigma_obs = sqrt(ratio) * parameters.GP.sigma
+        sigma_proc = parameters.GP.sigma
+        L = 0.5*log.(2*3.14159*sigma_obs^2) + (data[1,1] .- ut[1]).^2 ./ (2*sigma_obs^2)
+        L += 0.5*log.(2*3.14159*sigma_obs^2) + (data[2,1] .- ut[2]).^2 ./ (2*sigma_obs^2)
+
+        # initalize process loss accumulator 
+        for t in 2:(size(data)[2])
+            # calcualte forecasting error 
+            ut = parameters.uhat[:,t]
+            L += 0.5*log(2*3.14159*(sigma_2)) + (ut[1] - uhat[1])^2/(2*sigma_2) #  + nugget
+            L += 0.5*log(2*3.14159*sigma_proc^2) + (ut[2] - uhat[2])^2/(2*sigma_proc^2)
+            
+            if t < size(data)[2] 
+                # calcualte forecast and obervational loss using time between observations
+                dt = times[t] - times[t-1]
+                uhat, sigma_2, r, aux = predict(ut,aux,dt,parameters)    
+            end
+            L += 0.5*log.(2*3.14159*sigma_obs^2) + (data[1,t] .- ut[1]).^2 ./ (2*sigma_obs^2)
+            L += 0.5*log.(2*3.14159*sigma_obs^2) + (data[2,t] .- ut[2]).^2 ./ (2*sigma_obs^2)
+        end
+     
+        # gassian process priros 
+        L += likelihood(parameters.GP,GP)
+        L += sum(abs.(parameters.GP.l[1,1,:]).^2 ./(2*GP.psi)) # sum(0.5*log.(2*3.14159*GP.psi .^2) )+
+        L += -(k-1)*log(sigma_proc^2) + sigma_proc^2/phi
+        
+        # parametric model priors 
+        L += (parameters.log_q - mu_log_q)^2 /(2*sigma_log_q^2)
+
+        return L
+    end
+    
+end 
+
+
 mutable struct SurplusProduction
     times
     dt_final
