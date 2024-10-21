@@ -12,7 +12,7 @@ function gaussian_process(data, E, psi, r0, K0)
 
     GP, parameters = GaussianProcess(inducing_points,psi,mean_function)
     
-    parameters = (GP = parameters, log_q = 0.0, aux0 = zeros(E))
+    parameters = (GP = parameters, log_q = log(0.25), aux0 = zeros(E))
 
     function predict(u,dt,parameters) 
         inputs = vcat(u[1:1],parameters.aux0)
@@ -172,7 +172,7 @@ function init_loss(times,data,predict,ratio, GP, k, phi,  mu_log_q, sigma_log_q,
     
 end 
 
-mutable struct spEDM
+mutable struct spEDM_
     data
     model
     E
@@ -247,12 +247,12 @@ function spEDM(data, model, E, time_column_name, harvest_column_name, index_colu
     # final lags
     aux = data[1,(end-E+1):end]
  
-    return spEDM(dataframe, model, E, predict_sol, predict_F_sol, sol.u, priors, GP, aux, time_column_name, index_column_name, harvest_column_name)
+    return spEDM_(dataframe, model, E, predict_sol, predict_F_sol, sol.u, priors, GP, aux, time_column_name, index_column_name, harvest_column_name)
 
 end 
 
 
-function forecast(spEDM,new_data,fishing_column_name,fishing_variable)
+function forecast(spEDM::spEDM_,new_data,fishing_column_name,fishing_variable)
 
     times_forecast = new_data[:,spEDM.time_column_name]
     times = spEDM.data[:,spEDM.time_column_name]

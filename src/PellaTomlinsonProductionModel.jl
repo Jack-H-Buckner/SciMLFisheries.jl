@@ -3,41 +3,49 @@
 
 
 soft_plus(x) = x/(1-exp(-x))
-function logistic_process(data;steps = 10)
+function pella_tomlinson_process(data;steps = 10)
     
-    parameters = (log_q = log(0.1), log_K = log(10), log_r = log(1.0), sigma = 0.5)
+    parameters = (log_q = log(0.1), log_K = log(10), log_m = log(1.0), log_n = 0, sigma = 0.5)
    
     function predict(u,dt,parameters)
-        r_ =  exp(parameters.log_r)
+        m =  exp(parameters.log_m)
         K = exp(parameters.log_K)
+        n = exp(parameters.log_n)
+        γ = (n+1)^((n+1)/n)/n
         x = u[1]
         for i in 1:steps
-            r = r_* (1 - (exp(x)/K))
+            r = γ*m/K  - γ*m*(exp(x)^n/K^(n+1))
             x +=  dt*r/steps - dt*exp(parameters.log_q)*u[2]/exp(x)/steps
         end
-        return [x,u[2]], r_, []
+        return [x,u[2]], 0, []
     end 
     
     function predict(u,aux,dt,parameters) 
-        r_ =  exp(parameters.log_r)
+
+        
+        m =  exp(parameters.log_m)
         K = exp(parameters.log_K)
+        n = exp(parameters.log_n)
+        γ = (n+1)^((n+1)/n)/n
         x = u[1]
         for i in 1:steps
-            r = r_* (1 - (exp(x)/K))
+            r = γ*m/K  - γ*m*(exp(x)^n/K^(n+1))
             x +=  dt*r/steps - dt*exp(parameters.log_q)*u[2]/exp(x)/steps
         end
-        return [x,u[2]], r_, []
+        return [x,u[2]], 0, []
     end 
 
     function predict_F(u,aux,F,dt,parameters) 
-        r_ =  exp(parameters.log_r)
+        m =  exp(parameters.log_m)
         K = exp(parameters.log_K)
+        n = exp(parameters.log_n)
+        γ = (n+1)^((n+1)/n)/n
         x = u[1]
         for i in 1:steps
-            r = r_* (1 - (exp(x)/K))
-            x +=  dt*r/steps - dt*F/steps
+            r = γ*m/K  - γ*m*(exp(x)^n/K^(n+1))
+            x +=  dt*r/steps - dt*exp(parameters.log_q)*u[2]/exp(x)/steps
         end
-        return [x,u[2]], r_, []
+        return [x,u[2]], 0, []
     end 
 
     return predict, predict_F, parameters
@@ -45,7 +53,7 @@ function logistic_process(data;steps = 10)
 end 
 
 
-function init_loss_logistic(times,data,predict,ratio, mu_log_q, sigma_log_q, mu_log_K, sigma_log_K, mu_log_r, sigma_log_r)
+function init_loss_pella_tomlinson(times,data,predict,ratio, mu_log_q, sigma_log_q, mu_log_K, sigma_log_K, mu_log_m, sigma_log_m, mu_log_n, sigma_log_n)
     
     function loss_function(parameters, x)
         
@@ -84,14 +92,15 @@ function init_loss_logistic(times,data,predict,ratio, mu_log_q, sigma_log_q, mu_
         # parametric model priors 
         L += (parameters.log_q - mu_log_q)^2 /(2*sigma_log_q^2)
         L += (parameters.log_K - mu_log_K)^2 /(2*sigma_log_K^2)
-        L += (parameters.log_r - mu_log_r)^2 /(2*sigma_log_r^2)
+        L += (parameters.log_m - mu_log_m)^2 /(2*sigma_log_m^2)
+        L += (parameters.log_n - mu_log_n)^2 /(2*sigma_log_n^2)
 
         return L
     end
     
 end 
 
-mutable struct spLogistic_
+mutable struct spPellaTomlinson_
     data
     predict
     predict_F
@@ -104,12 +113,14 @@ end
 
 
 
-function spLogistic(data, time_column_name, harvest_column_name, index_column_name;
+function spPellaTomlinson(data, time_column_name, harvest_column_name, index_column_name;
                             ratio = 2.0, k = 2, phi = 0.0025,
                             mu_log_q = 0.0,sigma_log_q = 100.0,
-                            mu_log_r = 0.0,sigma_log_r = 100.0,
+                            mu_log_m = 0.0,sigma_log_m = 100.0,
+                            mu_log_n = 0.0,sigma_log_n = 100.0,
                             mu_log_K = 0.0,sigma_log_K = 100.0,
-                            step_size = 0.0025, maxiter = 500)
+                            step_size = 0.0025, maxiter = 500,
+                            steps = 10)
 
     # organize data sets
     dataframe = data 
@@ -120,9 +131,9 @@ function spLogistic(data, time_column_name, harvest_column_name, index_column_na
     # initialize model
     predict = x -> 0; predict_F = x -> 0; loss = (x,p) -> 0; parameters = 0; priors = 0
 
-    predict, predict_F, parameters =logistic_process(data)
-    priors = (k=k, phi=phi, mu_log_q=mu_log_q, sigma_log_q=sigma_log_q,mu_log_r=mu_log_r,sigma_log_r=sigma_log_r, mu_log_K=mu_log_K, sigma_log_K=sigma_log_K) 
-    loss = init_loss_logistic(times,data, predict,ratio,  mu_log_q, sigma_log_q, mu_log_K, sigma_log_K, mu_log_r, sigma_log_r)
+    predict, predict_F, parameters =pella_tomlinson_process(data;steps = steps)
+    priors = (k=k, phi=phi, mu_log_q=mu_log_q, sigma_log_q=sigma_log_q,mu_log_m=mu_log_m,sigma_log_m=sigma_log_m, mu_log_K=mu_log_K, sigma_log_K=sigma_log_K) 
+    loss =  init_loss_pella_tomlinson(times,data, predict,ratio,  mu_log_q, sigma_log_q, mu_log_K, sigma_log_K, mu_log_m, sigma_log_m, mu_log_n, sigma_log_n)
 
 
     # merge estimates states into parameters
@@ -153,12 +164,12 @@ function spLogistic(data, time_column_name, harvest_column_name, index_column_na
     predict_F_sol = (log_B,F,dt) -> predict_F([log_B],F,dt,sol.u)
 
  
-    return spLogistic_(dataframe, predict_sol, predict_F_sol, sol.u, priors, time_column_name, index_column_name, harvest_column_name)
+    return spPellaTomlinson_(dataframe, predict_sol, predict_F_sol, sol.u, priors, time_column_name, index_column_name, harvest_column_name)
 
 end 
 
 
-function forecast(spLogistic::spLogistic_,new_data,fishing_column_name,fishing_variable)
+function forecast(spLogistic::spPellaTomlinson_,new_data,fishing_column_name,fishing_variable)
 
     times_forecast = new_data[:,spLogistic.time_column_name]
     times = spLogistic.data[:,spLogistic.time_column_name]
